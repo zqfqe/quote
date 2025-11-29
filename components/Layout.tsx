@@ -1,15 +1,13 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Search, User, Heart, LogOut } from 'lucide-react';
+import { Menu, X, Search } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
-  user: { name: string } | null;
-  onLogin: () => void;
-  onLogout: () => void;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, user, onLogin, onLogout }) => {
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
@@ -41,7 +39,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogin, onLogout }) =>
               <Link to="/favorites" className="text-gray-600 hover:text-brand-600 font-medium transition">Favorites</Link>
             </div>
 
-            {/* Search & Auth (Desktop) */}
+            {/* Search (Desktop) */}
             <div className="hidden md:flex items-center space-x-4">
               <form onSubmit={handleSearch} className="relative group">
                 <input
@@ -53,22 +51,6 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogin, onLogout }) =>
                 />
                 <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2" />
               </form>
-
-              {user ? (
-                <div className="flex items-center space-x-3">
-                  <span className="text-sm font-medium text-gray-700">Hi, {user.name}</span>
-                  <button onClick={onLogout} className="text-gray-500 hover:text-red-500">
-                    <LogOut className="w-5 h-5" />
-                  </button>
-                </div>
-              ) : (
-                <button 
-                  onClick={onLogin}
-                  className="bg-brand-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-brand-700 transition shadow-md hover:shadow-lg"
-                >
-                  Join / Login
-                </button>
-              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -98,21 +80,6 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogin, onLogout }) =>
               <Link to="/" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-gray-800">Home</Link>
               <Link to="/explore?type=topic&q=Life" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-gray-800">Explore</Link>
               <Link to="/favorites" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-gray-800">Favorites</Link>
-            </div>
-            <div className="pt-4 border-t border-gray-100">
-              {user ? (
-                 <button onClick={onLogout} className="flex items-center space-x-2 text-red-500 font-medium">
-                   <LogOut className="w-5 h-5" />
-                   <span>Log Out</span>
-                 </button>
-              ) : (
-                <button 
-                  onClick={() => { onLogin(); setIsMenuOpen(false); }}
-                  className="w-full bg-brand-600 text-white py-2 rounded-lg font-medium"
-                >
-                  Sign In
-                </button>
-              )}
             </div>
           </div>
         )}
