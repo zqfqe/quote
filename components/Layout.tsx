@@ -32,6 +32,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <img 
                 src="/logo.png" 
                 alt="Maximus Quotes" 
+                width="48"
+                height="48"
+                loading="lazy"
                 className="h-12 w-auto object-contain"
                 onError={(e) => {
                   // Fallback if image fails
@@ -108,6 +111,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <img 
                     src="/logo.png" 
                     alt="Maximus Quotes" 
+                    width="64"
+                    height="64"
+                    loading="lazy"
                     className="h-16 w-auto"
                     onError={(e) => {
                         e.currentTarget.style.display = 'none';

@@ -1,15 +1,19 @@
 
 import React from 'react';
 import { Mail, MapPin, Globe, Shield, FileText, Info, MessageSquare } from 'lucide-react';
+import SEO from '../components/SEO';
 
 // Shared Layout Component for Legal Pages
 const LegalLayout: React.FC<{ 
   title: string; 
   lastUpdated?: string; 
   icon?: React.ElementType;
+  seoTitle?: string;
+  seoDesc?: string;
   children: React.ReactNode 
-}> = ({ title, lastUpdated, icon: Icon, children }) => (
+}> = ({ title, lastUpdated, icon: Icon, seoTitle, seoDesc, children }) => (
   <div className="bg-brand-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <SEO title={seoTitle || `${title} - Maximus Quotes`} description={seoDesc || title} />
     <div className="max-w-4xl mx-auto">
       <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
         <div className="bg-brand-900 px-8 py-10 text-center relative overflow-hidden">
@@ -32,7 +36,12 @@ const LegalLayout: React.FC<{
 
 // --- 1. ABOUT US ---
 export const About = () => (
-  <LegalLayout title="About Us" icon={Info}>
+  <LegalLayout 
+    title="About Us" 
+    icon={Info}
+    seoTitle="About Maximus Quotes - Our Mission & Vision"
+    seoDesc="Learn about Maximus Quotes, your premier digital sanctuary for wisdom and inspiration. Our mission is to curate the world's best quotes."
+  >
     <div className="prose prose-lg prose-blue max-w-none">
       <p className="text-xl text-gray-800 font-medium leading-loose">
         Welcome to <strong className="text-brand-700">Maximus Quotes</strong>, your digital sanctuary for timeless wisdom, daily inspiration, and the transformative power of words.
@@ -65,7 +74,12 @@ export const About = () => (
 
 // --- 2. CONTACT US ---
 export const Contact = () => (
-  <LegalLayout title="Contact Us" icon={MessageSquare}>
+  <LegalLayout 
+    title="Contact Us" 
+    icon={MessageSquare}
+    seoTitle="Contact Maximus Quotes - Get in Touch"
+    seoDesc="Contact the Maximus Quotes team for support, suggestions, or general inquiries. We love hearing from our community."
+  >
     <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
       <div>
         <h3 className="text-2xl font-serif font-bold text-gray-900 mb-6">Get in Touch</h3>
@@ -124,7 +138,13 @@ export const Contact = () => (
 
 // --- 3. PRIVACY POLICY ---
 export const Privacy = () => (
-  <LegalLayout title="Privacy Policy" lastUpdated="December 1, 2025" icon={Shield}>
+  <LegalLayout 
+    title="Privacy Policy" 
+    lastUpdated="December 1, 2025" 
+    icon={Shield}
+    seoTitle="Privacy Policy - Maximus Quotes"
+    seoDesc="Maximus Quotes respects your privacy. Read our Privacy Policy to understand how we collect, use, and protect your information."
+  >
     <div className="prose prose-blue max-w-none text-sm md:text-base">
       <p>
         At <strong>Maximus Quotes</strong> (accessible from https://maximusquotes.org), one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by Maximus Quotes and how we use it.
@@ -173,7 +193,13 @@ export const Privacy = () => (
 
 // --- 4. TERMS & CONDITIONS ---
 export const Terms = () => (
-  <LegalLayout title="Terms & Conditions" lastUpdated="December 1, 2025" icon={FileText}>
+  <LegalLayout 
+    title="Terms & Conditions" 
+    lastUpdated="December 1, 2025" 
+    icon={FileText}
+    seoTitle="Terms & Conditions - Maximus Quotes"
+    seoDesc="Read the Terms and Conditions for using Maximus Quotes. Understand your rights and responsibilities when using our platform."
+  >
     <div className="prose prose-blue max-w-none text-sm md:text-base">
       <p>
         Welcome to <strong>Maximus Quotes</strong>! These terms and conditions outline the rules and regulations for the use of Maximus Quotes's Website, located at https://maximusquotes.org.

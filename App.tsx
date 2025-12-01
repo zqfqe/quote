@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import SearchResults from './pages/SearchResults';
 import Favorites from './pages/Favorites';
 import { About, Contact, Privacy, Terms } from './pages/Legal';
+import NotFound from './pages/NotFound';
 import { Quote } from './types';
 
 function App() {
@@ -52,6 +53,7 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>
     </HashRouter>

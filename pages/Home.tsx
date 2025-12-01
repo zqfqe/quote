@@ -1,8 +1,10 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Star, BookOpen, Users, Film, Tv, Gamepad2, Book, Globe, Music, Zap, Feather } from 'lucide-react';
 import QuoteCard from '../components/QuoteCard';
 import Directory from '../components/Directory';
+import SEO from '../components/SEO';
 import { Quote } from '../types';
 import { fetchDailyQuote } from '../services/geminiService';
 import { 
@@ -38,6 +40,21 @@ const Home: React.FC<HomeProps> = ({ favorites, toggleFavorite }) => {
 
   return (
     <div className="space-y-20 pb-20">
+      <SEO 
+        title="Maximus Quotes - Discover Wisdom & Inspiration"
+        description="Your premier source for daily inspiration. Discover, save, and share thousands of curated quotes from authors, movies, books, and more."
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "Maximus Quotes",
+          "url": "https://maximusquotes.org",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://maximusquotes.org/#/explore?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        }}
+      />
       
       {/* Hero Section */}
       <section className="relative bg-brand-50 pt-20 pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
