@@ -5,17 +5,12 @@
  * Instructions:
  * 1. Ensure you have Node.js installed.
  * 2. Run this script from the root directory: `node scripts/generateSitemap.js`
- * 3. The `sitemap.xml` file will be created in the `public` folder (or root if using Vite public dir).
- * 
- * Note: This script reads the raw data files to generate URLs for every Topic, Author, etc.
+ * 3. The `sitemap.xml` file will be created in the `public` folder.
  */
 
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
-// Mock browser environment variables if needed for some imports, 
-// though we will try to read simple object keys directly or regex parse to avoid TS compilation issues in Node.
 
 const BASE_URL = 'https://maximusquotes.org';
 const TODAY = new Date().toISOString().split('T')[0];
@@ -54,12 +49,13 @@ const dataFiles = [
   { type: 'proverb', file: '../data/quotesProverbs.ts' },
 ];
 
+// HashRouter URLs must include /#/
 let urls = [
   { loc: '/', priority: '1.0' },
-  { loc: '/about', priority: '0.8' },
-  { loc: '/contact', priority: '0.5' },
-  { loc: '/privacy', priority: '0.5' },
-  { loc: '/terms', priority: '0.5' },
+  { loc: '/#/about', priority: '0.8' },
+  { loc: '/#/contact', priority: '0.5' },
+  { loc: '/#/privacy', priority: '0.5' },
+  { loc: '/#/terms', priority: '0.5' },
 ];
 
 console.log('Generating Sitemap...');
@@ -70,16 +66,10 @@ dataFiles.forEach(({ type, file }) => {
   console.log(`Found ${keys.length} items for ${type}`);
   
   keys.forEach(key => {
-    // HashRouter format: /#/explore?type=...
-    // Note: Google prefers clean URLs, but if using HashRouter, we must document the hash version or use the query param version if the server supports history mode.
-    // Assuming standard React Router params for query.
-    // If hosted on standard server, often query params are better indexed than hash fragments.
-    // However, the app uses HashRouter.
-    
-    // URL Encoding
+    // Generate URL format with hash
     const safeKey = encodeURIComponent(key);
     urls.push({
-      loc: `/explore?type=${type}&q=${safeKey}`, // Search engines handle query params well
+      loc: `/#/explore?type=${type}&q=${safeKey}`,
       priority: '0.7'
     });
   });
@@ -88,14 +78,14 @@ dataFiles.forEach(({ type, file }) => {
 const sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map(url => `  <url>
-    <loc>${BASE_URL}/#${url.loc.replace(/&/g, '&amp;')}</loc>
+    <loc>${BASE_URL}${url.loc.replace(/&/g, '&amp;')}</loc>
     <lastmod>${TODAY}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>${url.priority}</priority>
   </url>`).join('\n')}
 </urlset>`;
 
-// Write to public folder (standard for Vite)
+// Write to public folder
 const publicDir = path.resolve(__dirname, '../public');
 if (!fs.existsSync(publicDir)) {
     fs.mkdirSync(publicDir);

@@ -1,6 +1,7 @@
 
 import { Quote } from "../types";
 import { DAILY_QUOTES_POOL } from "../data/staticQuotes";
+import Fuse from 'fuse.js';
 
 // Helper to get random image based on seed
 const getImageUrl = (seed: string) => `https://picsum.photos/seed/${seed}/800/600?grayscale&blur=2`;
@@ -45,7 +46,7 @@ export const fetchDailyQuote = async (): Promise<Quote> => {
 export const fetchQuotesByQuery = async (query: string, type: 'search' | 'author' | 'topic' | 'movie' | 'tv' | 'game' | 'book' | 'proverb' | 'lyrics' | 'anime' | 'poetry'): Promise<Quote[]> => {
   if (!query) return [];
 
-  const normalizedQuery = query.toLowerCase().trim();
+  const normalizedQuery = query.trim();
   let rawData: Quote[] = [];
 
   try {
@@ -122,36 +123,38 @@ export const fetchQuotesByQuery = async (query: string, type: 'search' | 'author
     return [];
   }
 
-  // Filtering Logic
-  let results = rawData.filter(quote => {
-    const text = quote.text.toLowerCase();
-    const author = quote.author.toLowerCase();
-    const category = quote.category.toLowerCase();
+  // --- FUZZY SEARCH IMPLEMENTATION ---
+  
+  // Configure Fuse options based on search type
+  let keys = ['text', 'author', 'category'];
+  
+  // If searching specific directories, prioritize the category name (which holds the title/author name)
+  if (type !== 'search') {
+    keys = ['category', 'author']; // Prioritize the Item Name (e.g., "The Godfather")
+  }
 
-    switch (type) {
-      case 'author':
-        return author === normalizedQuery || author.includes(normalizedQuery);
-      
-      case 'topic':
-        return category === normalizedQuery || (category === 'general' && text.includes(normalizedQuery));
-      
-      case 'movie':
-      case 'tv':
-      case 'game':
-      case 'book':
-      case 'anime':
-      case 'lyrics':
-      case 'poetry':
-      case 'proverb':
-        return category === normalizedQuery || category.includes(normalizedQuery);
-      
-      case 'search':
-      default:
-        return text.includes(normalizedQuery) || 
-               author.includes(normalizedQuery) || 
-               category.includes(normalizedQuery);
-    }
+  const fuse = new Fuse(rawData, {
+    keys: keys,
+    threshold: 0.3, // 0.0 = perfect match, 1.0 = match anything. 0.3 is good for typos.
+    distance: 100,
+    ignoreLocation: true,
+    minMatchCharLength: 2,
+    shouldSort: true
   });
+
+  const fuseResults = fuse.search(normalizedQuery);
+  let results = fuseResults.map(result => result.item);
+
+  // Fallback: If fuzzy search returns nothing (or query is very short/specific), 
+  // try strict inclusion to ensure we don't miss exact substring matches that Fuse might consider "too far".
+  if (results.length === 0) {
+    const lowerQuery = normalizedQuery.toLowerCase();
+    results = rawData.filter(quote => 
+      quote.text.toLowerCase().includes(lowerQuery) ||
+      quote.author.toLowerCase().includes(lowerQuery) ||
+      quote.category.toLowerCase().includes(lowerQuery)
+    );
+  }
 
   return results.map(q => ({
     ...q,

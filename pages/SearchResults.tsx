@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Quote, DataStatus } from '../types';
 import { fetchQuotesByQuery } from '../services/geminiService';
@@ -12,17 +12,24 @@ interface SearchResultsProps {
   toggleFavorite: (q: Quote) => void;
 }
 
+const ITEMS_PER_PAGE = 24;
+
 const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite }) => {
   const [searchParams] = useSearchParams();
   const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [status, setStatus] = useState<DataStatus>(DataStatus.IDLE);
+  const observerTarget = useRef<HTMLDivElement>(null);
   
   const query = searchParams.get('q') || '';
   const type = (searchParams.get('type') as 'search' | 'author' | 'topic' | 'movie' | 'tv' | 'game' | 'book' | 'proverb' | 'lyrics' | 'anime' | 'poetry') || 'search';
 
+  // Fetch Data
   useEffect(() => {
     const fetchData = async () => {
       setStatus(DataStatus.LOADING);
+      // Reset visible count when query changes
+      setVisibleCount(ITEMS_PER_PAGE);
       const results = await fetchQuotesByQuery(query, type);
       setQuotes(results);
       setStatus(DataStatus.SUCCESS);
@@ -32,6 +39,28 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
       fetchData();
     }
   }, [query, type]);
+
+  // Infinite Scroll Observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + ITEMS_PER_PAGE, quotes.length));
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => {
+      if (observerTarget.current) {
+        observer.unobserve(observerTarget.current);
+      }
+    };
+  }, [quotes.length]);
 
   // SEO: Dynamic Title & Description generation
   const getSEODetails = () => {
@@ -67,6 +96,27 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
 
   const seo = getSEODetails();
 
+  // Programmatic SEO: Generate unique intro text based on type/query
+  const getIntroText = () => {
+    const qCap = query.charAt(0).toUpperCase() + query.slice(1);
+    if (quotes.length === 0) return null;
+
+    switch (type) {
+      case 'author':
+        return `Discover a curated collection of ${quotes.length}+ quotes by **${qCap}**. Known for their profound impact, ${qCap}'s words continue to inspire, motivate, and provoke thought. Explore their best sayings below.`;
+      case 'topic':
+        return `Looking for wisdom about **${qCap}**? We have compiled ${quotes.length}+ of the best quotes, sayings, and proverbs about ${qCap} to help you find the inspiration you need today.`;
+      case 'movie':
+        return `Relive the magic of **${qCap}**. Browse our collection of ${quotes.length}+ memorable lines, dialogues, and monologues from this classic movie.`;
+      case 'book':
+        return `Dive into the world of **${qCap}**. Here are ${quotes.length}+ famous quotes and excerpts that capture the essence of this literary masterpiece.`;
+      case 'tv':
+        return `From dramatic moments to hilarious one-liners, enjoy ${quotes.length}+ iconic quotes from the TV show **${qCap}**.`;
+      default:
+        return `Browse our extensive database for quotes matching "**${qCap}**". Whether you are looking for inspiration, humor, or wisdom, you'll find it here.`;
+    }
+  };
+
   const getDisplayTitle = () => {
     if (type === 'author') return `Quotes by ${query}`;
     if (type === 'topic') return `${query} Quotes`;
@@ -81,32 +131,64 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
     return `Results for "${query}"`;
   };
 
+  const visibleQuotes = quotes.slice(0, visibleCount);
+
+  // Structured Data with @graph to include both CollectionPage and BreadcrumbList
+  const schema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "name": seo.title,
+        "description": seo.desc,
+        "mainEntity": {
+          "@type": "ItemList",
+          "itemListElement": quotes.slice(0, 10).map((q, index) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "item": {
+              "@type": "Quotation",
+              "text": q.text,
+              "author": { "@type": "Person", "name": q.author }
+            }
+          }))
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://maximusquotes.org"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": type.charAt(0).toUpperCase() + type.slice(1),
+            "item": `https://maximusquotes.org/#/explore?type=${type}` // Placeholder item link
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": query,
+            "item": `https://maximusquotes.org/#/explore?type=${type}&q=${encodeURIComponent(query)}`
+          }
+        ]
+      }
+    ]
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <SEO 
         title={seo.title}
         description={seo.desc}
-        schema={{
-          "@context": "https://schema.org",
-          "@type": "CollectionPage",
-          "name": seo.title,
-          "description": seo.desc,
-          "mainEntity": {
-            "@type": "ItemList",
-            "itemListElement": quotes.slice(0, 10).map((q, index) => ({
-              "@type": "ListItem",
-              "position": index + 1,
-              "item": {
-                "@type": "Quotation",
-                "text": q.text,
-                "author": { "@type": "Person", "name": q.author }
-              }
-            }))
-          }
-        }}
+        schema={schema}
       />
 
-      <div className="mb-10 text-center">
+      <div className="mb-10 text-center max-w-3xl mx-auto">
         {/* Breadcrumb for internal linking structure */}
         <div className="flex items-center justify-center text-sm text-gray-500 mb-4 space-x-2">
           <Link to="/" className="hover:text-brand-600">Home</Link>
@@ -119,7 +201,16 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
         <span className="text-sm font-semibold text-brand-600 tracking-wider uppercase bg-brand-50 px-3 py-1 rounded-full">
             {type === 'tv' ? 'TV Show' : type === 'game' ? 'Video Game' : type}
         </span>
-        <h1 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 mt-4">{getDisplayTitle()}</h1>
+        <h1 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 mt-4 mb-6">{getDisplayTitle()}</h1>
+        
+        {/* Dynamic Content Description (Programmatic SEO) */}
+        {status === DataStatus.SUCCESS && quotes.length > 0 && (
+          <p className="text-gray-600 text-lg leading-relaxed">
+            {getIntroText()?.split('**').map((part, i) => 
+              i % 2 === 1 ? <strong key={i} className="font-semibold text-gray-800">{part}</strong> : part
+            )}
+          </p>
+        )}
       </div>
 
       {status === DataStatus.LOADING && (
@@ -139,9 +230,9 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
         </div>
       )}
 
-      {/* Masonry Layout for Quotes */}
+      {/* Masonry Layout for Quotes - Lazy Rendered */}
       <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-        {quotes.map((quote) => (
+        {visibleQuotes.map((quote) => (
           <QuoteCard
             key={quote.id}
             quote={quote}
@@ -151,7 +242,14 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
         ))}
       </div>
 
-      {/* Internal Linking Suggestion (SEO) */}
+      {/* Infinite Scroll Sensor */}
+      {status === DataStatus.SUCCESS && visibleCount < quotes.length && (
+        <div ref={observerTarget} className="py-10 flex justify-center">
+          <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+        </div>
+      )}
+
+      {/* Internal Linking Suggestion (SEO) - Only show when we have results */}
       {status === DataStatus.SUCCESS && quotes.length > 0 && (
         <div className="mt-20 border-t border-gray-100 pt-10 text-center">
           <p className="text-gray-500 mb-4">Explore more related categories</p>
