@@ -57,7 +57,7 @@ const getQuotesForItem = (id: string, name: string, category: string): Quote[] =
     return [{
       id,
       text: `${name} is a fascinating subject worth exploring.`,
-      author: "Lumina Archive",
+      author: "Maximus Archive",
       category: name
     }];
   }

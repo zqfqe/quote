@@ -25,11 +25,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-20">
             
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
-              <span className="text-2xl font-serif font-bold text-brand-900">Lumina.</span>
+              <img 
+                src="/logo.png" 
+                alt="Maximus Quotes" 
+                className="h-12 w-auto object-contain"
+                onError={(e) => {
+                  // Fallback if image fails
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+              <span className="hidden text-2xl font-serif font-bold text-brand-900">Maximus.</span>
             </Link>
 
             {/* Desktop Nav */}
@@ -94,7 +104,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <footer className="bg-gray-900 text-gray-300 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-1">
-            <h3 className="text-2xl font-serif font-bold text-white mb-4">Lumina.</h3>
+            <div className="mb-6">
+                <img 
+                    src="/logo.png" 
+                    alt="Maximus Quotes" 
+                    className="h-16 w-auto"
+                    onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                    }}
+                />
+                <h3 className="hidden text-2xl font-serif font-bold text-white mb-4">Maximus.</h3>
+            </div>
             <p className="text-sm text-gray-400">Fuel your mind with daily inspiration. The best collection of quotes from around the world.</p>
           </div>
           <div>
@@ -108,9 +129,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div>
             <h4 className="text-white font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-sm">
-              <li><span className="cursor-pointer hover:text-brand-400">About Us</span></li>
-              <li><span className="cursor-pointer hover:text-brand-400">Contact</span></li>
-              <li><span className="cursor-pointer hover:text-brand-400">Privacy Policy</span></li>
+              <li><Link to="/about" className="hover:text-brand-400">About Us</Link></li>
+              <li><Link to="/contact" className="hover:text-brand-400">Contact</Link></li>
+              <li><Link to="/privacy" className="hover:text-brand-400">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="hover:text-brand-400">Terms & Conditions</Link></li>
             </ul>
           </div>
           <div>
@@ -123,7 +145,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </div>
         <div className="max-w-7xl mx-auto px-4 mt-12 pt-8 border-t border-gray-800 text-center text-xs text-gray-500">
-          &copy; {new Date().getFullYear()} Lumina Quotes. All rights reserved.
+          &copy; {new Date().getFullYear()} Maximus Quotes. All rights reserved.
         </div>
       </footer>
     </div>

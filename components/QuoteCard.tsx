@@ -23,7 +23,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
     // Simple Web Share API or mock
     if (navigator.share) {
       navigator.share({
-        title: 'Lumina Quotes',
+        title: 'Maximus Quotes',
         text: `"${quote.text}" — ${quote.author}`,
         url: window.location.href,
       }).catch(console.error);
