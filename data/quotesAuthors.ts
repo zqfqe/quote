@@ -307,6 +307,7 @@ export const AUTHOR_QUOTES: Record<string, { text: string, author: string }[]> =
   "Xenophon": [q("Excess of grief for the dead is madness.", "Xenophon"), q("Faster than the wind.", "Xenophon")],
   "Xzibit": [q("Yo dawg, I heard you like cars.", "Xzibit"), q("Don't let the game play you.", "Xzibit")],
   // Y
+  "Yanni": [q("Creativity is an unlimited resource.", "Yanni"), q("Every song I write is a small confession.", "Yanni")],
   "Yann Martel": [q("Life is a peephole, a single tiny entry onto a vastness.", "Yann Martel"), q("You must take life the way it comes at you and make the best of it.", "Yann Martel")],
   "Yoko Ono": [q("A dream you dream alone is only a dream. A dream you dream together is reality.", "Yoko Ono"), q("Smile in the mirror.", "Yoko Ono")],
   "Yogi Berra": [q("It ain't over till it's over.", "Yogi Berra"), q("When you come to a fork in the road, take it.", "Yogi Berra")],

@@ -216,7 +216,7 @@ export const GAME_QUOTES: Record<string, { text: string, author: string }[]> = {
   "Yakuza": [q("Dame da ne.", "Song"), q("Kiryu-chan!", "Majima"), q("That's rad.", "Kiryu")],
   "Yoshi's Island": [q("HNNNG!", "Yoshi Sound")],
   "Yooka-Laylee": [q("Friendship is the best collectible.", "Laylee"), q("Eekum Bokum!", "Mumbo")],
-  "Ys": [q("Adol Christin.", "Hero")],
+  "Ys": [q("Ever since I was a child, I have always been attracted to the unknown.", "Adol Christin")],
   // Z
   "Zelda": [q("Excuse me, princess!", "Link (Cartoon)"), q("It's a secret to everybody.", "Moblin")],
   "Zero Escape": [q("Life is simply unfair.", "Zero III"), q("Sic Mundus Creatus Est.", "Latin Phrase")],

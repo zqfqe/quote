@@ -274,7 +274,7 @@ export const BOOK_QUOTES: Record<string, { text: string, author: string }[]> = {
   "Unbearable Lightness of Being": [q("Einmal ist keinmal.", "Milan Kundera")],
   "Unbroken": [q("A lifetime of glory is worth a moment of pain.", "Laura Hillenbrand")],
   "Uncle Tom's Cabin": [q("I'spect I grow'd.", "Harriet Beecher Stowe")],
-  "Under the Dome": [q("Pink stars are falling.", "Stephen King")],
+  "Under the Dome": [q("The pink stars are falling in lines.", "Stephen King")],
   "Utopia": [q("There are no lawyers among them.", "Thomas More")],
   // V
   "V for Vendetta": [q("People should not be afraid of their governments.", "Alan Moore"), q("Ideas are bulletproof.", "Alan Moore")],
@@ -314,7 +314,7 @@ export const BOOK_QUOTES: Record<string, { text: string, author: string }[]> = {
   "X: A Novel": [q("If you don't stand for something, you will fall for anything.", "Ilyasah Shabazz (Malcolm X)"), q("The future belongs to those who prepare for it today.", "Malcolm X")],
   "X-Men: God Loves, Man Kills": [q("God loves, man kills.", "Chris Claremont"), q("Mutants.", "Theme")],
   "Xenocide": [q("We are the gods of the atoms that make up ourselves.", "Orson Scott Card"), q("We are not alone.", "Orson Scott Card")],
-  "Xingu": [q("Culture.", "Edith Wharton"), q("Society.", "Edith Wharton")],
+  "Xingu": [q("She was one of those extremely clever women who can talk about anything.", "Edith Wharton"), q("Culture is like a drop of scent.", "Edith Wharton")],
   // Y
   "Year of Wonders": [q("It is a time of wonders.", "Geraldine Brooks"), q("Survival.", "Geraldine Brooks")],
   "Yellow Wallpaper": [q("There are things in that paper that nobody knows but me.", "Charlotte Perkins Gilman"), q("It is the strangest yellow, that wall-paper!", "Charlotte Perkins Gilman")],
