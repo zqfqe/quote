@@ -1,6 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-// 1. 修改这里：把 HashRouter 改为 BrowserRouter
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import SearchResults from './pages/SearchResults';
@@ -8,6 +8,15 @@ import Favorites from './pages/Favorites';
 import { About, Contact, Privacy, Terms } from './pages/Legal';
 import NotFound from './pages/NotFound';
 import { Quote } from './types';
+
+// Helper to scroll to top on route change (standard behavior for non-hash routing)
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
 
 function App() {
   // Favorites State
@@ -34,8 +43,8 @@ function App() {
   };
 
   return (
-    // 2. 修改这里：把 HashRouter 改为 BrowserRouter
     <BrowserRouter>
+      <ScrollToTop />
       <Layout>
         <Routes>
           <Route 

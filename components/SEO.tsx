@@ -20,9 +20,9 @@ const SEO: React.FC<SEOProps> = ({
   noindex = false
 }) => {
   const location = useLocation();
-  // FIX: For HashRouter, the canonical URL must include the '/#' prefix.
-  // location.pathname provides the path inside the hash (e.g., '/explore').
-  const canonicalUrl = `https://maximusquotes.org/#${location.pathname}${location.search}`;
+  // CLEAN URL UPDATE: Removed the '/#' prefix. 
+  // For BrowserRouter, location.pathname is the full path (e.g., '/explore').
+  const canonicalUrl = `https://maximusquotes.org${location.pathname}${location.search}`;
 
   useEffect(() => {
     // 1. Update Title

@@ -1,3 +1,4 @@
+
 {
   "name": "maximus-quotes",
   "private": true,
@@ -5,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run generate-sitemap && vite build && cp dist/index.html dist/404.html",
+    "build": "npm run generate-sitemap && vite build",
     "preview": "vite preview",
     "generate-sitemap": "node scripts/generateSitemap.js"
   },

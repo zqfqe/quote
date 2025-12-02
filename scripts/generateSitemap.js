@@ -49,13 +49,13 @@ const dataFiles = [
   { type: 'proverb', file: '../data/quotesProverbs.ts' },
 ];
 
-// HashRouter URLs must include /#/
+// Clean URLs (No /#/)
 let urls = [
   { loc: '/', priority: '1.0' },
-  { loc: '/#/about', priority: '0.8' },
-  { loc: '/#/contact', priority: '0.5' },
-  { loc: '/#/privacy', priority: '0.5' },
-  { loc: '/#/terms', priority: '0.5' },
+  { loc: '/about', priority: '0.8' },
+  { loc: '/contact', priority: '0.5' },
+  { loc: '/privacy', priority: '0.5' },
+  { loc: '/terms', priority: '0.5' },
 ];
 
 console.log('Generating Sitemap...');
@@ -66,10 +66,10 @@ dataFiles.forEach(({ type, file }) => {
   console.log(`Found ${keys.length} items for ${type}`);
   
   keys.forEach(key => {
-    // Generate URL format with hash
+    // Generate CLEAN URL format
     const safeKey = encodeURIComponent(key);
     urls.push({
-      loc: `/#/explore?type=${type}&q=${safeKey}`,
+      loc: `/explore?type=${type}&q=${safeKey}`,
       priority: '0.7'
     });
   });

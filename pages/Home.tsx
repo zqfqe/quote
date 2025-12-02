@@ -31,6 +31,7 @@ const Home: React.FC<HomeProps> = ({ favorites, toggleFavorite }) => {
   }, []);
 
   // Structured Data: WebSite + FAQPage
+  // UPDATED: SearchAction target now uses clean URL (removed /#/)
   const homeSchema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -40,7 +41,7 @@ const Home: React.FC<HomeProps> = ({ favorites, toggleFavorite }) => {
         "url": "https://maximusquotes.org",
         "potentialAction": {
           "@type": "SearchAction",
-          "target": "https://maximusquotes.org/#/explore?q={search_term_string}",
+          "target": "https://maximusquotes.org/explore?q={search_term_string}",
           "query-input": "required name=search_term_string"
         }
       },
@@ -84,8 +85,10 @@ const Home: React.FC<HomeProps> = ({ favorites, toggleFavorite }) => {
     ]
   };
 
-  // Updated Collections with Multi-Keyword Queries (Option B)
+  // Featured Collections
   const collections = [
+    { title: "Days of the Week", query: "Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Weekend", count: "Daily", color: "bg-blue-50 text-blue-700", type: "topic" },
+    { title: "Four Seasons", query: "Spring|Summer|Autumn|Winter|Season", count: "Seasonal", color: "bg-green-50 text-green-700", type: "topic" },
     { title: "Daily Motivation", query: "Motivation|Inspiration|Dreams|Courage|Action", count: "1000+", color: "bg-orange-100 text-orange-700", type: "topic" },
     { title: "Stoic Wisdom", query: "Philosophy|Wisdom|Patience|Strength|Truth", count: "500+", color: "bg-slate-100 text-slate-700", type: "topic" },
     { title: "Movie Magic", query: "Godfather|Star Wars|Pulp Fiction|Dark Knight|Fight Club", count: "2000+", color: "bg-rose-100 text-rose-700", type: "movie" },
@@ -135,7 +138,7 @@ const Home: React.FC<HomeProps> = ({ favorites, toggleFavorite }) => {
           <Layers className="w-6 h-6 text-brand-600" />
           <h2 className="text-2xl font-bold text-gray-900">Curated Collections</h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {collections.map((col, idx) => (
             <Link 
               key={idx} 
