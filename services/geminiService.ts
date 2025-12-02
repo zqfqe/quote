@@ -46,7 +46,11 @@ export const fetchDailyQuote = async (): Promise<Quote> => {
 export const fetchQuotesByQuery = async (query: string, type: 'search' | 'author' | 'topic' | 'movie' | 'tv' | 'game' | 'book' | 'proverb' | 'lyrics' | 'anime' | 'poetry'): Promise<Quote[]> => {
   if (!query) return [];
 
-  const normalizedQuery = query.trim();
+  // Support multi-keyword search with '|' separator (e.g. "Love|Romance|Heart")
+  const searchTerms = query.split('|').map(t => t.trim());
+  const isMultiSearch = searchTerms.length > 1;
+  const normalizedQuery = searchTerms[0]; // Use first term for single-search fallbacks
+
   let rawData: Quote[] = [];
 
   try {
@@ -96,8 +100,7 @@ export const fetchQuotesByQuery = async (query: string, type: 'search' | 'author
       
       case 'search':
       default:
-        // For global search, we unfortunately need to load multiple sources.
-        // To optimize, we load them in parallel.
+        // For global search, load multiple sources in parallel
         const [
           { TOPIC_QUOTES: topics },
           { AUTHOR_QUOTES: authors },
@@ -123,37 +126,54 @@ export const fetchQuotesByQuery = async (query: string, type: 'search' | 'author
     return [];
   }
 
-  // --- FUZZY SEARCH IMPLEMENTATION ---
-  
-  // Configure Fuse options based on search type
-  let keys = ['text', 'author', 'category'];
-  
-  // If searching specific directories, prioritize the category name (which holds the title/author name)
-  if (type !== 'search') {
-    keys = ['category', 'author']; // Prioritize the Item Name (e.g., "The Godfather")
-  }
+  // --- FILTERING LOGIC ---
 
-  const fuse = new Fuse(rawData, {
-    keys: keys,
-    threshold: 0.3, // 0.0 = perfect match, 1.0 = match anything. 0.3 is good for typos.
-    distance: 100,
-    ignoreLocation: true,
-    minMatchCharLength: 2,
-    shouldSort: true
-  });
+  let results: Quote[] = [];
 
-  const fuseResults = fuse.search(normalizedQuery);
-  let results = fuseResults.map(result => result.item);
+  if (isMultiSearch) {
+    // OR Logic: Return quote if it matches ANY of the search terms
+    // We use standard inclusion instead of Fuse for speed and predictability on large sets
+    results = rawData.filter(quote => {
+      const textLower = quote.text.toLowerCase();
+      const authorLower = quote.author.toLowerCase();
+      const categoryLower = quote.category.toLowerCase();
 
-  // Fallback: If fuzzy search returns nothing (or query is very short/specific), 
-  // try strict inclusion to ensure we don't miss exact substring matches that Fuse might consider "too far".
-  if (results.length === 0) {
-    const lowerQuery = normalizedQuery.toLowerCase();
-    results = rawData.filter(quote => 
-      quote.text.toLowerCase().includes(lowerQuery) ||
-      quote.author.toLowerCase().includes(lowerQuery) ||
-      quote.category.toLowerCase().includes(lowerQuery)
-    );
+      return searchTerms.some(term => {
+        const t = term.toLowerCase();
+        // Check if term matches category, author, or text
+        return categoryLower.includes(t) || authorLower.includes(t) || textLower.includes(t);
+      });
+    });
+  } else {
+    // Single Term Logic with Fuzzy Search
+    
+    // Configure Fuse options based on search type
+    let keys = ['text', 'author', 'category'];
+    if (type !== 'search') {
+      keys = ['category', 'author']; // Prioritize the Item Name (e.g., "The Godfather")
+    }
+
+    const fuse = new Fuse(rawData, {
+      keys: keys,
+      threshold: 0.3,
+      distance: 100,
+      ignoreLocation: true,
+      minMatchCharLength: 2,
+      shouldSort: true
+    });
+
+    const fuseResults = fuse.search(normalizedQuery);
+    results = fuseResults.map(result => result.item);
+
+    // Fallback: Strict inclusion if fuzzy fails
+    if (results.length === 0) {
+      const lowerQuery = normalizedQuery.toLowerCase();
+      results = rawData.filter(quote => 
+        quote.text.toLowerCase().includes(lowerQuery) ||
+        quote.author.toLowerCase().includes(lowerQuery) ||
+        quote.category.toLowerCase().includes(lowerQuery)
+      );
+    }
   }
 
   return results.map(q => ({

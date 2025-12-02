@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, BookOpen, Users, Film, Tv, Gamepad2, Book, Globe, Music, Zap, Feather, Sparkles, Compass, Share2 } from 'lucide-react';
+import { Star, BookOpen, Users, Film, Tv, Gamepad2, Book, Globe, Music, Zap, Feather, Sparkles, Compass, Share2, Layers } from 'lucide-react';
 import QuoteCard from '../components/QuoteCard';
 import Directory from '../components/Directory';
 import SEO from '../components/SEO';
@@ -84,6 +84,16 @@ const Home: React.FC<HomeProps> = ({ favorites, toggleFavorite }) => {
     ]
   };
 
+  // Updated Collections with Multi-Keyword Queries (Option B)
+  const collections = [
+    { title: "Daily Motivation", query: "Motivation|Inspiration|Dreams|Courage|Action", count: "1000+", color: "bg-orange-100 text-orange-700", type: "topic" },
+    { title: "Stoic Wisdom", query: "Philosophy|Wisdom|Patience|Strength|Truth", count: "500+", color: "bg-slate-100 text-slate-700", type: "topic" },
+    { title: "Movie Magic", query: "Godfather|Star Wars|Pulp Fiction|Dark Knight|Fight Club", count: "2000+", color: "bg-rose-100 text-rose-700", type: "movie" },
+    { title: "Love & Romance", query: "Love|Romantic|Marriage|Affection|Valentine", count: "800+", color: "bg-pink-100 text-pink-700", type: "topic" },
+    { title: "Success Mindset", query: "Success|Business|Money|Leadership|Work", count: "700+", color: "bg-green-100 text-green-700", type: "topic" },
+    { title: "Laugh Out Loud", query: "Humor|Funny|Smile|Laughter|Amusement", count: "400+", color: "bg-yellow-100 text-yellow-700", type: "topic" },
+  ];
+
   return (
     <div className="space-y-20 pb-20">
       <SEO 
@@ -116,6 +126,26 @@ const Home: React.FC<HomeProps> = ({ favorites, toggleFavorite }) => {
             <Link to="/explore?type=topic&q=Love" className="hover:text-brand-600 underline decoration-dotted">Love</Link>
             <Link to="/explore?type=topic&q=Success" className="hover:text-brand-600 underline decoration-dotted">Success</Link>
           </div>
+        </div>
+      </section>
+
+      {/* Featured Collections (Enhanced) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center space-x-2 mb-6">
+          <Layers className="w-6 h-6 text-brand-600" />
+          <h2 className="text-2xl font-bold text-gray-900">Curated Collections</h2>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {collections.map((col, idx) => (
+            <Link 
+              key={idx} 
+              to={`/explore?type=${col.type}&q=${encodeURIComponent(col.query)}`}
+              className={`p-4 rounded-xl transition-transform hover:scale-105 ${col.color} border border-black/5`}
+            >
+              <h3 className="font-bold text-sm md:text-base mb-1">{col.title}</h3>
+              <p className="text-xs opacity-70">{col.count} Quotes</p>
+            </Link>
+          ))}
         </div>
       </section>
 
