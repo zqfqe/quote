@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route } from 'react-router-dom';
+// 1. 修改这里：把 HashRouter 改为 BrowserRouter
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import SearchResults from './pages/SearchResults';
@@ -34,7 +34,8 @@ function App() {
   };
 
   return (
-    <HashRouter>
+    // 2. 修改这里：把 HashRouter 改为 BrowserRouter
+    <BrowserRouter>
       <Layout>
         <Routes>
           <Route 
@@ -56,7 +57,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>
-    </HashRouter>
+    </BrowserRouter>
   );
 }
 
