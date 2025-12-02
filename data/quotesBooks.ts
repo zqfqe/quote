@@ -210,7 +210,7 @@ export const BOOK_QUOTES: Record<string, { text: string, author: string }[]> = {
   "Quiet American": [q("Innocence is like a dumb leper who has lost his bell.", "Graham Greene")],
   "Quo Vadis": [q("Whither goest thou?", "Henryk Sienkiewicz")],
   // R
-  "Rabbit, Run": [q("Run.", "John Updike")],
+  "Rabbit, Run": [q("If you have the guts to be yourself, other people'll pay your price.", "John Updike")],
   "Ready Player One": [q("No one in the world ever gets what they want and that is beautiful.", "Ernest Cline")],
   "Rebecca": [q("Last night I dreamt I went to Manderley again.", "Daphne du Maurier")],
   "Red Badge of Courage": [q("He wished that he was dead.", "Stephen Crane")],
@@ -311,19 +311,19 @@ export const BOOK_QUOTES: Record<string, { text: string, author: string }[]> = {
   "World War Z": [q("The dead do not rest.", "Max Brooks")],
   "Wuthering Heights": [q("Whatever our souls are made of, his and mine are the same.", "Emily Bronte"), q("I am Heathcliff.", "Emily Bronte")],
   // X
-  "X: A Novel": [q("X marks the spot.", "Ilyasah Shabazz"), q("Change.", "Theme")],
+  "X: A Novel": [q("If you don't stand for something, you will fall for anything.", "Ilyasah Shabazz (Malcolm X)"), q("The future belongs to those who prepare for it today.", "Malcolm X")],
   "X-Men: God Loves, Man Kills": [q("God loves, man kills.", "Chris Claremont"), q("Mutants.", "Theme")],
-  "Xenocide": [q("We are not alone.", "Orson Scott Card"), q("The hive queen.", "Orson Scott Card")],
+  "Xenocide": [q("We are the gods of the atoms that make up ourselves.", "Orson Scott Card"), q("We are not alone.", "Orson Scott Card")],
   "Xingu": [q("Culture.", "Edith Wharton"), q("Society.", "Edith Wharton")],
   // Y
-  "Year of Wonders": [q("The plague.", "Geraldine Brooks"), q("Survival.", "Geraldine Brooks")],
+  "Year of Wonders": [q("It is a time of wonders.", "Geraldine Brooks"), q("Survival.", "Geraldine Brooks")],
   "Yellow Wallpaper": [q("There are things in that paper that nobody knows but me.", "Charlotte Perkins Gilman"), q("It is the strangest yellow, that wall-paper!", "Charlotte Perkins Gilman")],
   "Yertle the Turtle": [q("I'm king of the world!", "Dr. Seuss"), q("I know I'm the king of the pond.", "Dr. Seuss")],
   "You": [q("You don't know who you are. You don't know what you want.", "Caroline Kepnes"), q("I know you.", "Caroline Kepnes")],
   "You Only Live Twice": [q("You only live twice: Once when you are born and once when you look death in the face.", "Ian Fleming")],
   "Youth": [q("I was young.", "Joseph Conrad"), q("The sea.", "Joseph Conrad")],
   // Z
-  "Z for Zachariah": [q("I am the only one left.", "Robert C. O'Brien"), q("The valley.", "Robert C. O'Brien")],
+  "Z for Zachariah": [q("I am the only one left.", "Robert C. O'Brien"), q("I felt a kind of peace, being alone here.", "Robert C. O'Brien")],
   "Zen and the Art of Motorcycle Maintenance": [q("The place to improve the world is first in one's own heart and head and hands.", "Robert M. Pirsig"), q("Quality.", "Robert M. Pirsig")],
   "Zero K": [q("Death is a custom.", "Don DeLillo"), q("Cryonics.", "Theme")],
   "Zhivago": [q("Lara.", "Boris Pasternak"), q("Revolution.", "Boris Pasternak")],

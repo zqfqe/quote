@@ -219,7 +219,7 @@ export const LYRICS_QUOTES: Record<string, { text: string, author: string }[]> =
   "X Ambassadors": [q("Hey, hey, hey, living like we're renegades.", "X Ambassadors"), q("Hold on to me cause I'm a little unsteady.", "X Ambassadors")],
   "XTC": [q("Making plans for Nigel.", "XTC"), q("Dear God, hope you got the letter.", "XTC")],
   "XXXTentacion": [q("Sad!", "XXXTentacion"), q("Spotlight, moonlight.", "XXXTentacion")],
-  "Xzibit": [q("X.", "Xzibit")],
+  "Xzibit": [q("Pimp my ride.", "Xzibit"), q("X to the Z.", "Xzibit")],
   "X Ray Spex": [q("Oh Bondage! Up Yours!", "X Ray Spex")],
   // Y
   "Yeah Yeah Yeahs": [q("Off with your head.", "Yeah Yeah Yeahs"), q("Wait, they don't love you like I love you.", "Yeah Yeah Yeahs")],
@@ -228,10 +228,10 @@ export const LYRICS_QUOTES: Record<string, { text: string, author: string }[]> =
   "Young MC": [q("Don't just stand there, bust a move.", "Young MC")],
   "Yusuf / Cat Stevens": [q("Oh baby, baby, it's a wild world.", "Cat Stevens")],
   // Z
-  "Zac Brown Band": [q("Chicken fried.", "Zac Brown Band"), q("Toes in the water.", "Zac Brown Band")],
+  "Zac Brown Band": [q("You know I like my chicken fried.", "Zac Brown Band"), q("Toes in the water.", "Zac Brown Band")],
   "Zara Larsson": [q("I live my day as if it was the last.", "Zara Larsson"), q("It ain't my fault.", "Zara Larsson")],
   "Zayn": [q("It's our paradise and it's our war zone.", "Zayn"), q("Baby, let's just be real.", "Zayn")],
   "Zedd": [q("If our love is tragedy, why are you my remedy?", "Zedd"), q("Baby, why don't you just meet me in the middle?", "Zedd")],
   "Zombies": [q("It's the time of the season.", "The Zombies"), q("She's not there.", "The Zombies")],
-  "ZZ Top": [q("Every girl's crazy 'bout a sharp dressed man.", "ZZ Top"), q("La Grange.", "ZZ Top"), q("Gimme all your lovin'.", "ZZ Top")]
+  "ZZ Top": [q("Every girl's crazy 'bout a sharp dressed man.", "ZZ Top"), q("Rumour spreadin' 'round in that Texas town.", "ZZ Top"), q("Gimme all your lovin'.", "ZZ Top")]
 };

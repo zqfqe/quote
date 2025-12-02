@@ -253,7 +253,7 @@ export const TOPIC_QUOTES: Record<string, { text: string, author: string }[]> = 
   // Y
   "Year": [q("A year from now you may wish you had started today.", "Karen Lamb"), q("Cheers to a new year.", "Oprah Winfrey"), q("It was a very good year.", "Frank Sinatra")],
   "Yesterday": [q("Yesterday is history.", "Eleanor Roosevelt"), q("Yesterday all my troubles seemed so far away.", "The Beatles")],
-  "Yoga": [q("Yoga is the journey of the self, through the self, to the self.", "Bhagavad Gita"), q("Inhale the future, exhale the past.", "Unknown")],
+  "Yoga": [q("Yoga is the journey of the self.", "Gita"), q("Inhale the future, exhale the past.", "Unknown")],
   "You": [q("You are enough.", "Unknown"), q("Wherever you go, there you are.", "Jon Kabat-Zinn"), q("You must be the change you wish to see in the world.", "Gandhi"), q("It had to be you.", "Frank Sinatra")],
   "Young": [q("Youth is wasted on the young.", "George Bernard Shaw"), q("Forever young.", "Bob Dylan")],
   "Your": [q("Your time is limited, so don't waste it living someone else's life.", "Steve Jobs"), q("Your vibe attracts your tribe.", "Unknown")],
@@ -264,6 +264,6 @@ export const TOPIC_QUOTES: Record<string, { text: string, author: string }[]> = 
   "Zeal": [q("Nothing great was ever achieved without enthusiasm.", "Emerson"), q("Zeal without knowledge is fire without light.", "Thomas Fuller")],
   "Zen": [q("When you walk, walk. When you eat, eat.", "Zen Proverb"), q("The obstacle is the path.", "Zen Proverb")],
   "Zero": [q("Zero is where everything starts.", "Unknown"), q("From zero to hero.", "Hercules")],
-  "Zone": [q("Get in the zone.", "AutoZone"), q("Life begins at the end of your comfort zone.", "Neale Donald Walsch")],
+  "Zone": [q("Life begins at the end of your comfort zone.", "Neale Donald Walsch"), q("Zone of genius.", "Gay Hendricks")],
   "Zoo": [q("It's a zoo out there.", "Idiom"), q("Someone told me it's all happening at the zoo.", "Simon & Garfunkel")]
 };

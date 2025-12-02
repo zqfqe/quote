@@ -212,7 +212,7 @@ export const TV_QUOTES: Record<string, { text: string, author: string }[]> = {
   "Ugly Betty": [q("Mode.", "Magazine")],
   "Umbrella Academy": [q("I heard a rumor.", "Allison")],
   "Unbreakable Kimmy Schmidt": [q("Females are strong as hell.", "Song")],
-  "Under the Dome": [q("Pink stars.", "Quote")],
+  "Under the Dome": [q("The pink stars are falling in lines.", "Joe McAlister")],
   // V
   "Vampire Diaries": [q("Hello, brother.", "Damon")],
   "Veep": [q("Continuity with change.", "Selina")],
@@ -239,11 +239,11 @@ export const TV_QUOTES: Record<string, { text: string, author: string }[]> = {
   "Yellowjackets": [q("Buzz buzz buzz.", "Team"), q("There's no queens in that deck.", "Nat"), q("It wants us to spill blood.", "Lottie"), q("Doomcoming.", "Event")],
   "You": [q("Hello, You.", "Joe Goldberg"), q("I'm not a killer. I'm a protector.", "Joe Goldberg"), q("I wolf you.", "Love Quinn"), q("The things we do for love.", "Joe")],
   "Young Sheldon": [q("I'm not crazy, my mother had me tested.", "Sheldon"), q("Bazinga!", "Sheldon"), q("Science.", "Theme"), q("Meemaw.", "Constance")],
-  "Younger": [q("Age is just a number.", "Liza"), q("The secret.", "Plot"), q("Publishing.", "Setting"), q("Team Charles.", "Fanbase")],
+  "Younger": [q("Age is just a number.", "Liza"), q("I feel like I'm finally living the life I was supposed to have.", "Liza Miller")],
   "Your Honor": [q("I can keep you safe.", "Michael"), q("Don't tell anyone.", "Michael"), q("Part One.", "Title"), q("Judge.", "Role")],
   "Yu-Gi-Oh!": [q("It's time to duel!", "Yugi"), q("Heart of the cards.", "Yugi"), q("Blue-Eyes White Dragon.", "Card"), q("Shadow Realm.", "Penalty")],
   // Z
-  "Zoo": [q("Animals are rising up.", "Jackson"), q("The cure.", "Goal"), q("Mutation.", "Plot"), q("Rebellion.", "Theme")],
+  "Zoo": [q("This isn't about animals. It's about us.", "Jackson Oz"), q("Animals are rising up.", "Jackson")],
   "Zoey 101": [q("Are you ready?", "Song"), q("PCA.", "School"), q("Key necklace.", "Item"), q("Drippin'.", "Logan")],
-  "Z Nation": [q("I give you mercy.", "Warren"), q("Puppies and kittens.", "Doc"), q("The Murphy.", "Character"), q("Zombies.", "Enemy")]
+  "Z Nation": [q("I give you mercy.", "Warren"), q("Puppies and kittens.", "Doc"), q("I am the cure!", "Murphy"), q("Zombies.", "Enemy")]
 };

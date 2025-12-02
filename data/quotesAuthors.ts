@@ -318,6 +318,6 @@ export const AUTHOR_QUOTES: Record<string, { text: string, author: string }[]> =
   "Zendaya": [q("There are so many great things in life; why dwell on negativity?", "Zendaya")],
   "Zig Ziglar": [q("You don't have to be great to start, but you have to start to be great.", "Zig Ziglar"), q("Your attitude, not your aptitude, will determine your altitude.", "Zig Ziglar")],
   "Zinedine Zidane": [q("I have a need to play.", "Zinedine Zidane")],
-  "Zoe Saldana": [q("I love aging.", "Zoe Saldana")],
+  "Zoe Saldana": [q("I love aging. Why would I want to be 21 for the rest of my life?", "Zoe Saldana")],
   "Zora Neale Hurston": [q("There are years that ask questions and years that answer.", "Zora Neale Hurston"), q("Love makes your soul crawl out from its hiding place.", "Zora Neale Hurston")]
 };

@@ -142,7 +142,6 @@ export const GAME_QUOTES: Record<string, { text: string, author: string }[]> = {
   "Okami": [q("Amaterasu.", "Issun")],
   "Ori and the Blind Forest": [q("The light of Nibel.", "Sein")],
   "Outer Wilds": [q("Science compels us to explode the sun!", "Riebeck")],
-  "Oblivion": [q("Stop right there, criminal scum!", "Imperial Guard")],
   "Octopath Traveler": [q("My focus is unparalleled.", "Cyrus")],
   "Outlast": [q("Little pig.", "Chris Walker")],
   // P
@@ -207,7 +206,7 @@ export const GAME_QUOTES: Record<string, { text: string, author: string }[]> = {
   "Warhammer 40,000": [q("For the Emperor!", "Space Marine"), q("Blood for the Blood God!", "Chaos")],
   "Witcher": [q("Toss a coin to your Witcher.", "Jaskier")],
   // X
-  "X-COM": [q("99% hit chance. *Misses*", "Player Pain"), q("We are watching.", "Council")],
+  "X-COM": [q("99% hit chance. *Misses*", "Player Pain"), q("We are watching.", "Council"), q("Good luck, Commander.", "Council")],
   "Xenoblade Chronicles": [q("I'm really feeling it!", "Shulk"), q("It's Reyn time!", "Reyn")],
   "Xenogears": [q("Stand tall and shake the heavens.", "Grahf")],
   "Xenosaga": [q("Ye shall be as gods.", "Title")],
@@ -216,13 +215,12 @@ export const GAME_QUOTES: Record<string, { text: string, author: string }[]> = {
   // Y
   "Yakuza": [q("Dame da ne.", "Song"), q("Kiryu-chan!", "Majima"), q("That's rad.", "Kiryu")],
   "Yoshi's Island": [q("HNNNG!", "Yoshi Sound")],
-  "Yooka-Laylee": [q("Pagies.", "Item")],
+  "Yooka-Laylee": [q("Friendship is the best collectible.", "Laylee"), q("Eekum Bokum!", "Mumbo")],
   "Ys": [q("Adol Christin.", "Hero")],
   // Z
   "Zelda": [q("Excuse me, princess!", "Link (Cartoon)"), q("It's a secret to everybody.", "Moblin")],
-  "Zero Wing": [q("All your base are belong to us.", "CATS"), q("Somebody set up us the bomb.", "Mechanic")],
-  "Zone of the Enders": [q("Jehuty.", "Orbital Frame")],
+  "Zero Escape": [q("Life is simply unfair.", "Zero III"), q("Sic Mundus Creatus Est.", "Latin Phrase")],
+  "Zone of the Enders": [q("Jehuty, launch.", "ADA"), q("Cockpit.", "Voice")],
   "Zork": [q("It is pitch black. You are likely to be eaten by a grue.", "Narrator")],
-  "Zuma": [q("Zuma!", "Chant")],
-  "Zoo Tycoon": [q("Guest is thirsty.", "Notification")]
+  "Zoo Tycoon": [q("Guest 1 can't find the restroom.", "Notification"), q("Zookeeper has released the lions.", "Alert")]
 };

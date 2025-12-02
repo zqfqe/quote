@@ -6,7 +6,7 @@ export const PROVERB_QUOTES: Record<string, { text: string, author: string }[]> 
   "Abyssinian Proverbs": [q("Advice is a stranger; if he is welcome he stays.", "Abyssinian Proverb")],
   "Afghan Proverbs": [q("A river is made drop by drop.", "Afghan Proverb"), q("No rose without a thorn.", "Afghan Proverb")],
   "African Proverbs": [q("If you want to go fast, go alone. If you want to go far, go together.", "African Proverb"), q("Smooth seas do not make skillful sailors.", "African Proverb")],
-  "American Proverbs": [q("The early bird catches the worm.", "American Proverb"), q("If it ain't broke, don't fix it.", "American Proverb")],
+  "American Proverbs": [q("The early bird catches the worm.", "American Proverb"), q("Actions speak louder than words.", "American Proverb")],
   "Apache Proverbs": [q("It is better to have less thunder in the mouth and more lightning in the hand.", "Apache Proverb")],
   "Arab Proverbs": [q("The enemy of my enemy is my friend.", "Arab Proverb"), q("Silence is the best answer to the stupid.", "Arab Proverb")],
   "Argentine Proverbs": [q("The devil knows more because he is old than because he is the devil.", "Argentine Proverb")],
@@ -164,7 +164,7 @@ export const PROVERB_QUOTES: Record<string, { text: string, author: string }[]> 
   "Ugandan Proverbs": [q("The teeth that laugh are also those that bite.", "Ugandan Proverb")],
   "Uighur Proverbs": [q("The eyes are the mirror of the heart.", "Uighur Proverb")],
   "Ukrainian Proverbs": [q("Where there is bread, there is peace.", "Ukrainian Proverb")],
-  "Uruguayan Proverbs": [q("Better late than never.", "Uruguayan Proverb")],
+  "Uruguayan Proverbs": [q("No por mucho madrugar amanece más temprano.", "Uruguayan Proverb (Spanish)")],
   "Urdu Proverbs": [q("A drop in the ocean.", "Urdu Proverb")],
   // V
   "Venezuelan Proverbs": [q("A full belly, a happy heart.", "Venezuelan Proverb")],
@@ -175,7 +175,7 @@ export const PROVERB_QUOTES: Record<string, { text: string, author: string }[]> 
   // X
   "Xhosa Proverbs": [q("People are people because of other people.", "Xhosa Proverb")],
   // Y
-  "Yemeni Proverbs": [q("If you are a anvil, be patient.", "Yemeni Proverb")],
+  "Yemeni Proverbs": [q("If you are an anvil, be patient; if you are a hammer, strike.", "Yemeni Proverb")],
   "Yiddish Proverbs": [q("Man plans and God laughs.", "Yiddish Proverb")],
   "Yoruba Proverbs": [q("If you damage the character of another, you damage your own.", "Yoruba Proverb")],
   // Z
