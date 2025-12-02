@@ -6,7 +6,11 @@ import SEO from '../components/SEO';
 const NotFound: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
-      <SEO title="Page Not Found - Maximus Quotes" description="The page you are looking for does not exist. Return to Maximus Quotes home." />
+      <SEO 
+        title="Page Not Found - Maximus Quotes" 
+        description="The page you are looking for does not exist. Return to Maximus Quotes home." 
+        noindex={true}
+      />
       
       <div className="bg-brand-50 rounded-full p-8 mb-6">
         <span className="text-6xl">🤔</span>

@@ -8,6 +8,7 @@ interface SEOProps {
   image?: string;
   type?: 'website' | 'article';
   schema?: object;
+  noindex?: boolean;
 }
 
 const SEO: React.FC<SEOProps> = ({ 
@@ -15,7 +16,8 @@ const SEO: React.FC<SEOProps> = ({
   description, 
   image = 'https://maximusquotes.org/logo.png', 
   type = 'website',
-  schema 
+  schema,
+  noindex = false
 }) => {
   const location = useLocation();
   // FIX: For HashRouter, the canonical URL must include the '/#' prefix.
@@ -51,7 +53,16 @@ const SEO: React.FC<SEOProps> = ({
     updateMeta('twitter:description', description);
     updateMeta('twitter:image', image);
 
-    // 3. Update Canonical Link
+    // 3. Update Robots Meta (Soft 404 Prevention)
+    let robots = document.querySelector("meta[name='robots']");
+    if (!robots) {
+      robots = document.createElement('meta');
+      robots.setAttribute('name', 'robots');
+      document.head.appendChild(robots);
+    }
+    robots.setAttribute('content', noindex ? 'noindex' : 'index, follow');
+
+    // 4. Update Canonical Link
     let link = document.querySelector("link[rel='canonical']") as HTMLLinkElement;
     if (!link) {
       link = document.createElement('link');
@@ -60,7 +71,7 @@ const SEO: React.FC<SEOProps> = ({
     }
     link.setAttribute('href', canonicalUrl);
 
-    // 4. Inject Schema.org JSON-LD
+    // 5. Inject Schema.org JSON-LD
     if (schema) {
       let script = document.querySelector("#seo-schema") as HTMLScriptElement;
       if (!script) {
@@ -72,7 +83,7 @@ const SEO: React.FC<SEOProps> = ({
       script.text = JSON.stringify(schema);
     }
 
-  }, [title, description, image, type, canonicalUrl, schema]);
+  }, [title, description, image, type, canonicalUrl, schema, noindex]);
 
   return null;
 };

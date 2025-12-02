@@ -107,6 +107,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
               onClick={() => onToggleFavorite(quote)}
               className="p-3 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md transition-all text-white border border-white/20"
               title="Add to Favorites"
+              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
             >
               <Heart className={`w-6 h-6 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
             </button>
@@ -116,13 +117,15 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
               disabled={isDownloading}
               className="p-3 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md transition-all text-white border border-white/20"
               title="Download Image"
+              aria-label="Download quote as image"
             >
               {isDownloading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Download className="w-6 h-6" />}
             </button>
 
             <button 
               onClick={handleCopy}
-              className="px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-full font-medium transition-all shadow-lg hover:shadow-brand-500/50 flex items-center space-x-2"
+              className="px-6 py-3 bg-brand-600 hover:bg-brand-50 text-white rounded-full font-medium transition-all shadow-lg hover:shadow-brand-500/50 flex items-center space-x-2"
+              aria-label="Copy quote text"
             >
               {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
               <span>{copied ? 'Copied' : 'Copy Text'}</span>
@@ -168,6 +171,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
             disabled={isDownloading}
             className="p-2 text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded-full transition"
             title="Download Image"
+            aria-label="Download quote as image"
           >
              {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
           </button>
@@ -176,6 +180,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
             onClick={handleCopy}
             className="p-2 text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded-full transition"
             title="Copy Text"
+            aria-label="Copy quote text"
           >
              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
           </button>
@@ -184,6 +189,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
             onClick={() => onToggleFavorite(quote)}
             className={`p-2 rounded-full transition ${isFavorite ? 'text-red-500 bg-red-50' : 'text-gray-400 hover:text-red-500 hover:bg-red-50'}`}
             title="Add to Favorites"
+            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
           >
             <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
           </button>

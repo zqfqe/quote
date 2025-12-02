@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
+import SearchAutocomplete from './SearchAutocomplete';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -9,16 +10,6 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const navigate = useNavigate();
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/explore?q=${encodeURIComponent(searchQuery)}&type=search`);
-      setIsMenuOpen(false);
-    }
-  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -28,7 +19,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="flex justify-between items-center h-20">
             
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2">
+            <Link to="/" className="flex items-center space-x-2 shrink-0">
               <img 
                 src="/logo.png" 
                 alt="Maximus Quotes" 
@@ -52,24 +43,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <Link to="/favorites" className="text-gray-600 hover:text-brand-600 font-medium transition">Favorites</Link>
             </div>
 
-            {/* Search (Desktop) */}
-            <div className="hidden md:flex items-center space-x-4">
-              <form onSubmit={handleSearch} className="relative group">
-                <input
-                  type="text"
-                  placeholder="Search quotes..."
-                  className="pl-9 pr-4 py-1.5 rounded-full bg-gray-100 border-none focus:ring-2 focus:ring-brand-500 text-sm w-48 transition-all"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2" />
-              </form>
+            {/* Search (Desktop) - Replaced with Autocomplete */}
+            <div className="hidden md:flex items-center ml-4">
+              <SearchAutocomplete variant="navbar" className="w-64" />
             </div>
 
             {/* Mobile Menu Button */}
             <button 
-              className="md:hidden text-gray-600"
+              className="md:hidden text-gray-600 p-2"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Toggle menu"
             >
               {isMenuOpen ? <X /> : <Menu />}
             </button>
@@ -78,21 +61,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden bg-white border-b border-gray-100 px-4 pt-2 pb-6 space-y-4">
-            <form onSubmit={handleSearch} className="relative">
-              <input
-                type="text"
-                placeholder="Search authors, topics..."
-                className="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-50 border border-gray-200 focus:outline-none focus:border-brand-500"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+          <div className="md:hidden bg-white border-b border-gray-100 px-4 pt-2 pb-6 space-y-4 shadow-lg animate-in slide-in-from-top-5 duration-200">
+            {/* Mobile Autocomplete */}
+            <div className="pt-2">
+              <SearchAutocomplete 
+                variant="hero" 
+                placeholder="Search authors, topics..." 
+                onSearchComplete={() => setIsMenuOpen(false)}
               />
-              <Search className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
-            </form>
-            <div className="flex flex-col space-y-3">
-              <Link to="/" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-gray-800">Home</Link>
-              <Link to="/explore?type=topic&q=Life" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-gray-800">Explore</Link>
-              <Link to="/favorites" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-gray-800">Favorites</Link>
+            </div>
+            
+            <div className="flex flex-col space-y-3 pt-2">
+              <Link to="/" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-gray-800 py-2 border-b border-gray-50">Home</Link>
+              <Link to="/explore?type=topic&q=Life" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-gray-800 py-2 border-b border-gray-50">Explore</Link>
+              <Link to="/favorites" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-gray-800 py-2">Favorites</Link>
             </div>
           </div>
         )}

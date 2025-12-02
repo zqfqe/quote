@@ -1,10 +1,11 @@
 
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Star, BookOpen, Users, Film, Tv, Gamepad2, Book, Globe, Music, Zap, Feather } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Star, BookOpen, Users, Film, Tv, Gamepad2, Book, Globe, Music, Zap, Feather, Sparkles, Compass, Share2 } from 'lucide-react';
 import QuoteCard from '../components/QuoteCard';
 import Directory from '../components/Directory';
 import SEO from '../components/SEO';
+import SearchAutocomplete from '../components/SearchAutocomplete';
 import { Quote } from '../types';
 import { fetchDailyQuote } from '../services/geminiService';
 import { 
@@ -20,8 +21,6 @@ interface HomeProps {
 
 const Home: React.FC<HomeProps> = ({ favorites, toggleFavorite }) => {
   const [dailyQuote, setDailyQuote] = useState<Quote | null>(null);
-  const [search, setSearch] = useState('');
-  const navigate = useNavigate();
 
   useEffect(() => {
     const loadData = async () => {
@@ -31,11 +30,58 @@ const Home: React.FC<HomeProps> = ({ favorites, toggleFavorite }) => {
     loadData();
   }, []);
 
-  const handleHeroSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if(search.trim()) {
-      navigate(`/explore?type=search&q=${encodeURIComponent(search)}`);
-    }
+  // Structured Data: WebSite + FAQPage
+  const homeSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "name": "Maximus Quotes",
+        "url": "https://maximusquotes.org",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://maximusquotes.org/#/explore?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is Maximus Quotes?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Maximus Quotes is a curated digital library of wisdom, featuring thousands of quotes from authors, movies, books, and more, designed to inspire your daily life."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is Maximus Quotes free to use?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, Maximus Quotes is 100% free to use. You can browse, search, and save quotes without any cost."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I download quote images?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes! You can generate and download beautiful, high-quality images of any quote on our site to share on social media like Instagram or Pinterest."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does Maximus Quotes have an app?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Maximus Quotes is a Progressive Web App (PWA). You can 'Add to Home Screen' from your mobile browser to install it like a native app."
+            }
+          }
+        ]
+      }
+    ]
   };
 
   return (
@@ -43,17 +89,7 @@ const Home: React.FC<HomeProps> = ({ favorites, toggleFavorite }) => {
       <SEO 
         title="Maximus Quotes - Discover Wisdom & Inspiration"
         description="Your premier source for daily inspiration. Discover, save, and share thousands of curated quotes from authors, movies, books, and more."
-        schema={{
-          "@context": "https://schema.org",
-          "@type": "WebSite",
-          "name": "Maximus Quotes",
-          "url": "https://maximusquotes.org",
-          "potentialAction": {
-            "@type": "SearchAction",
-            "target": "https://maximusquotes.org/#/explore?q={search_term_string}",
-            "query-input": "required name=search_term_string"
-          }
-        }}
+        schema={homeSchema}
       />
       
       {/* Hero Section */}
@@ -70,21 +106,9 @@ const Home: React.FC<HomeProps> = ({ favorites, toggleFavorite }) => {
             Discover thousands of curated quotes to inspire your day, elevate your writing, and share with the world.
           </p>
 
-          <form onSubmit={handleHeroSearch} className="max-w-xl mx-auto relative mb-8">
-            <input 
-              type="text" 
-              placeholder="Search by author, topic, or keyword..."
-              className="w-full px-6 py-4 rounded-full shadow-lg border-0 ring-1 ring-gray-200 focus:ring-2 focus:ring-brand-500 text-lg transition-shadow"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <button 
-              type="submit"
-              className="absolute right-2 top-2 bottom-2 px-6 bg-brand-600 hover:bg-brand-700 text-white rounded-full font-medium transition"
-            >
-              Explore
-            </button>
-          </form>
+          <div className="max-w-xl mx-auto relative mb-8">
+            <SearchAutocomplete variant="hero" placeholder="Search by author, topic, or keyword..." />
+          </div>
 
           <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm font-medium text-gray-500">
             <span>Popular:</span>
@@ -205,6 +229,51 @@ const Home: React.FC<HomeProps> = ({ favorites, toggleFavorite }) => {
 
         </div>
 
+      </section>
+
+      {/* SEO Content Block - Redesigned */}
+      <section className="bg-gradient-to-b from-white to-gray-50 border-t border-gray-100 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-gray-900 mb-4">Why Maximus Quotes?</h2>
+            <p className="text-lg text-gray-600">Your ultimate destination for discovering, sharing, and saving the world's most powerful words.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            {/* Feature 1 */}
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition text-center">
+              <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Sparkles className="w-7 h-7" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Curated Wisdom</h3>
+              <p className="text-gray-600 leading-relaxed">
+                In a digital age overflowing with noise, we curate the profound. From ancient philosophers like <strong>Socrates</strong> to modern visionaries like <strong>Steve Jobs</strong>, our database bridges the gap between timeless wisdom and daily life.
+              </p>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition text-center">
+              <div className="w-14 h-14 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Compass className="w-7 h-7" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Effortless Discovery</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Whether you need <em>inspirational quotes</em> for the morning or <em>motivational sayings</em> for a workout, we've organized them into an easy-to-navigate library spanning categories like <strong>Love</strong>, <strong>Success</strong>, and <strong>Courage</strong>.
+              </p>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition text-center">
+              <div className="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Share2 className="w-7 h-7" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Share the Light</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Join thousands using Maximus Quotes as their daily source of positivity. Save your favorites, <strong>generate beautiful quote images</strong> for Instagram and Pinterest, and let the right words change your perspective.
+              </p>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Lead Magnet */}

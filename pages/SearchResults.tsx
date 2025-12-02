@@ -131,53 +131,100 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
     return `Results for "${query}"`;
   };
 
-  const visibleQuotes = quotes.slice(0, visibleCount);
+  // Contextual Linking Helper
+  const getRelatedLinks = () => {
+    switch (type) {
+      case 'movie':
+      case 'tv':
+        return [
+          { label: 'Action Quotes', url: '/explore?type=topic&q=Action' },
+          { label: 'Classic Movies', url: '/explore?type=topic&q=Classic' },
+          { label: 'Funny Lines', url: '/explore?type=topic&q=Funny' }
+        ];
+      case 'book':
+      case 'poetry':
+      case 'author':
+        return [
+          { label: 'Wisdom', url: '/explore?type=topic&q=Wisdom' },
+          { label: 'Success Quotes', url: '/explore?type=topic&q=Success' },
+          { label: 'Philosophy', url: '/explore?type=topic&q=Philosophy' }
+        ];
+      case 'anime':
+      case 'game':
+        return [
+          { label: 'Adventure', url: '/explore?type=topic&q=Adventure' },
+          { label: 'Courage', url: '/explore?type=topic&q=Courage' },
+          { label: 'Friendship', url: '/explore?type=topic&q=Friendship' }
+        ];
+      default:
+        return [
+          { label: 'Life Quotes', url: '/explore?type=topic&q=Life' },
+          { label: 'Love Quotes', url: '/explore?type=topic&q=Love' },
+          { label: 'Wisdom Quotes', url: '/explore?type=topic&q=Wisdom' }
+        ];
+    }
+  };
 
-  // Structured Data with @graph to include both CollectionPage and BreadcrumbList
+  const visibleQuotes = quotes.slice(0, visibleCount);
+  const relatedLinks = getRelatedLinks();
+
+  // Structured Data with @graph to include CollectionPage, BreadcrumbList, AND Person (if author)
+  const graph: any[] = [
+    {
+      "@type": "CollectionPage",
+      "name": seo.title,
+      "description": seo.desc,
+      "mainEntity": {
+        "@type": "ItemList",
+        "itemListElement": quotes.slice(0, 10).map((q, index) => ({
+          "@type": "ListItem",
+          "position": index + 1,
+          "item": {
+            "@type": "Quotation",
+            "text": q.text,
+            "author": { "@type": "Person", "name": q.author }
+          }
+        }))
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://maximusquotes.org"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": type.charAt(0).toUpperCase() + type.slice(1),
+          "item": `https://maximusquotes.org/#/explore?type=${type}`
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": query,
+          "item": `https://maximusquotes.org/#/explore?type=${type}&q=${encodeURIComponent(query)}`
+        }
+      ]
+    }
+  ];
+
+  // Inject Person Schema for Author Pages to boost Knowledge Graph signals
+  if (type === 'author') {
+    graph.push({
+      "@type": "Person",
+      "name": query,
+      "description": `Quotes and wisdom by ${query}.`,
+      "url": `https://maximusquotes.org/#/explore?type=author&q=${encodeURIComponent(query)}`
+    });
+  }
+
   const schema = {
     "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "CollectionPage",
-        "name": seo.title,
-        "description": seo.desc,
-        "mainEntity": {
-          "@type": "ItemList",
-          "itemListElement": quotes.slice(0, 10).map((q, index) => ({
-            "@type": "ListItem",
-            "position": index + 1,
-            "item": {
-              "@type": "Quotation",
-              "text": q.text,
-              "author": { "@type": "Person", "name": q.author }
-            }
-          }))
-        }
-      },
-      {
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": "https://maximusquotes.org"
-          },
-          {
-            "@type": "ListItem",
-            "position": 2,
-            "name": type.charAt(0).toUpperCase() + type.slice(1),
-            "item": `https://maximusquotes.org/#/explore?type=${type}` // Placeholder item link
-          },
-          {
-            "@type": "ListItem",
-            "position": 3,
-            "name": query,
-            "item": `https://maximusquotes.org/#/explore?type=${type}&q=${encodeURIComponent(query)}`
-          }
-        ]
-      }
-    ]
+    "@graph": graph
   };
 
   return (
@@ -186,6 +233,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
         title={seo.title}
         description={seo.desc}
         schema={schema}
+        noindex={status === DataStatus.SUCCESS && quotes.length === 0}
       />
 
       <div className="mb-10 text-center max-w-3xl mx-auto">
@@ -249,14 +297,20 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
         </div>
       )}
 
-      {/* Internal Linking Suggestion (SEO) - Only show when we have results */}
+      {/* Internal Linking Suggestion (SEO) - Contextual */}
       {status === DataStatus.SUCCESS && quotes.length > 0 && (
         <div className="mt-20 border-t border-gray-100 pt-10 text-center">
-          <p className="text-gray-500 mb-4">Explore more related categories</p>
+          <p className="text-gray-500 mb-4">Explore related categories</p>
           <div className="flex flex-wrap justify-center gap-4">
-             <Link to="/explore?type=topic&q=Life" className="px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-full text-sm text-gray-700 transition">Life Quotes</Link>
-             <Link to="/explore?type=topic&q=Love" className="px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-full text-sm text-gray-700 transition">Love Quotes</Link>
-             <Link to="/explore?type=topic&q=Wisdom" className="px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-full text-sm text-gray-700 transition">Wisdom Quotes</Link>
+             {relatedLinks.map((link, idx) => (
+               <Link 
+                 key={idx}
+                 to={link.url} 
+                 className="px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-full text-sm text-gray-700 transition"
+               >
+                 {link.label}
+               </Link>
+             ))}
           </div>
         </div>
       )}
