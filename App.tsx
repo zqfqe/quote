@@ -51,6 +51,12 @@ function App() {
             path="/" 
             element={<Home favorites={savedIds} toggleFavorite={toggleFavorite} />} 
           />
+          {/* New SEO Friendly Route Structure */}
+          <Route 
+            path="/quotes/:type/:query" 
+            element={<SearchResults favorites={savedIds} toggleFavorite={toggleFavorite} />} 
+          />
+          {/* Legacy route fallback */}
           <Route 
             path="/explore" 
             element={<SearchResults favorites={savedIds} toggleFavorite={toggleFavorite} />} 

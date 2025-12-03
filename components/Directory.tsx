@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { LucideIcon } from 'lucide-react';
@@ -198,7 +199,7 @@ const Directory: React.FC<DirectoryProps> = ({ title, items, type, icon: Icon, t
             {displayItems.map((item) => (
               <Link
                 key={item.id}
-                to={`/explore?type=${type}&q=${encodeURIComponent(item.name)}`}
+                to={`/quotes/${type}/${encodeURIComponent(item.name)}`}
                 className="flex items-center group p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all"
               >
                 <div className={`w-2 h-2 rounded-full bg-gray-200 ${styles.groupHoverBg} mr-3 shrink-0 transition-colors`}></div>

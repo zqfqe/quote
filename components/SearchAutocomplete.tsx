@@ -81,7 +81,8 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   const handleSelect = (item: SearchItem) => {
     setQuery(item.name);
     setIsOpen(false);
-    navigate(`/explore?type=${item.type}&q=${encodeURIComponent(item.name)}`);
+    // Updated to use clean URL path
+    navigate(`/quotes/${item.type}/${encodeURIComponent(item.name)}`);
     if (onSearchComplete) onSearchComplete();
   };
 
@@ -89,7 +90,8 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
     e.preventDefault();
     if (query.trim()) {
       setIsOpen(false);
-      navigate(`/explore?type=search&q=${encodeURIComponent(query)}`);
+      // Updated to use clean URL path for general search
+      navigate(`/quotes/search/${encodeURIComponent(query)}`);
       if (onSearchComplete) onSearchComplete();
     }
   };

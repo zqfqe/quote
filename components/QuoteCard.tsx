@@ -92,7 +92,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
               "{quote.text}"
             </h2>
           </blockquote>
-          <Link to={`/explore?type=author&q=${encodeURIComponent(quote.author)}`} className="text-xl md:text-2xl text-brand-100 font-medium hover:text-white transition drop-shadow-md">
+          <Link to={`/quotes/author/${encodeURIComponent(quote.author)}`} className="text-xl md:text-2xl text-brand-100 font-medium hover:text-white transition drop-shadow-md">
             <cite className="not-italic">— {quote.author}</cite>
           </Link>
           
@@ -156,7 +156,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
       <footer className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
         <div className="flex flex-col">
           <Link 
-            to={`/explore?type=author&q=${encodeURIComponent(quote.author)}`}
+            to={`/quotes/author/${encodeURIComponent(quote.author)}`}
             className="text-sm font-semibold text-gray-600 hover:text-brand-600 transition"
           >
             <cite className="not-italic">{quote.author}</cite>
@@ -198,7 +198,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
       
       {/* Category Tag */}
       <div className="mt-2 text-xs text-gray-400 uppercase tracking-wide">
-        <Link to={`/explore?type=topic&q=${encodeURIComponent(quote.category)}`} className="hover:underline hover:text-gray-500">
+        <Link to={`/quotes/topic/${encodeURIComponent(quote.category)}`} className="hover:underline hover:text-gray-500">
           #{quote.category}
         </Link>
       </div>

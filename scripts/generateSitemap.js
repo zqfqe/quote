@@ -66,10 +66,10 @@ dataFiles.forEach(({ type, file }) => {
   console.log(`Found ${keys.length} items for ${type}`);
   
   keys.forEach(key => {
-    // Generate CLEAN URL format
+    // Generate CLEAN URL format: /quotes/:type/:query
     const safeKey = encodeURIComponent(key);
     urls.push({
-      loc: `/explore?type=${type}&q=${safeKey}`,
+      loc: `/quotes/${type}/${safeKey}`,
       priority: '0.7'
     });
   });

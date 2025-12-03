@@ -1,6 +1,6 @@
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import React, { useEffect, useState, useRef } from 'react';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { Quote, DataStatus } from '../types';
 import { fetchQuotesByQuery } from '../services/geminiService';
 import QuoteCard from '../components/QuoteCard';
@@ -15,14 +15,22 @@ interface SearchResultsProps {
 const ITEMS_PER_PAGE = 24;
 
 const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite }) => {
+  // Support both new Path params and legacy Query params for backward compatibility
+  const params = useParams();
   const [searchParams] = useSearchParams();
+  
+  // Prefer path params, fallback to query params
+  // decodeURIComponent is generally handled by useParams automatically, but good for safety if manual parsing
+  const rawQuery = params.query || searchParams.get('q') || '';
+  const rawType = params.type || searchParams.get('type') || 'search';
+
+  const query = decodeURIComponent(rawQuery);
+  const type = rawType as 'search' | 'author' | 'topic' | 'movie' | 'tv' | 'game' | 'book' | 'proverb' | 'lyrics' | 'anime' | 'poetry';
+
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [status, setStatus] = useState<DataStatus>(DataStatus.IDLE);
   const observerTarget = useRef<HTMLDivElement>(null);
-  
-  const query = searchParams.get('q') || '';
-  const type = (searchParams.get('type') as 'search' | 'author' | 'topic' | 'movie' | 'tv' | 'game' | 'book' | 'proverb' | 'lyrics' | 'anime' | 'poetry') || 'search';
 
   // Fetch Data
   useEffect(() => {
@@ -131,36 +139,36 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
     return `Results for "${query}"`;
   };
 
-  // Contextual Linking Helper
+  // Contextual Linking Helper (Updated to new URL structure)
   const getRelatedLinks = () => {
     switch (type) {
       case 'movie':
       case 'tv':
         return [
-          { label: 'Action Quotes', url: '/explore?type=topic&q=Action' },
-          { label: 'Classic Movies', url: '/explore?type=topic&q=Classic' },
-          { label: 'Funny Lines', url: '/explore?type=topic&q=Funny' }
+          { label: 'Action Quotes', url: '/quotes/topic/Action' },
+          { label: 'Classic Movies', url: '/quotes/topic/Classic' },
+          { label: 'Funny Lines', url: '/quotes/topic/Funny' }
         ];
       case 'book':
       case 'poetry':
       case 'author':
         return [
-          { label: 'Wisdom', url: '/explore?type=topic&q=Wisdom' },
-          { label: 'Success Quotes', url: '/explore?type=topic&q=Success' },
-          { label: 'Philosophy', url: '/explore?type=topic&q=Philosophy' }
+          { label: 'Wisdom', url: '/quotes/topic/Wisdom' },
+          { label: 'Success Quotes', url: '/quotes/topic/Success' },
+          { label: 'Philosophy', url: '/quotes/topic/Philosophy' }
         ];
       case 'anime':
       case 'game':
         return [
-          { label: 'Adventure', url: '/explore?type=topic&q=Adventure' },
-          { label: 'Courage', url: '/explore?type=topic&q=Courage' },
-          { label: 'Friendship', url: '/explore?type=topic&q=Friendship' }
+          { label: 'Adventure', url: '/quotes/topic/Adventure' },
+          { label: 'Courage', url: '/quotes/topic/Courage' },
+          { label: 'Friendship', url: '/quotes/topic/Friendship' }
         ];
       default:
         return [
-          { label: 'Life Quotes', url: '/explore?type=topic&q=Life' },
-          { label: 'Love Quotes', url: '/explore?type=topic&q=Love' },
-          { label: 'Wisdom Quotes', url: '/explore?type=topic&q=Wisdom' }
+          { label: 'Life Quotes', url: '/quotes/topic/Life' },
+          { label: 'Love Quotes', url: '/quotes/topic/Love' },
+          { label: 'Wisdom Quotes', url: '/quotes/topic/Wisdom' }
         ];
     }
   };
@@ -200,13 +208,14 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
           "@type": "ListItem",
           "position": 2,
           "name": type.charAt(0).toUpperCase() + type.slice(1),
-          "item": `https://maximusquotes.org/#/explore?type=${type}`
+          // Using clean URL
+          "item": `https://maximusquotes.org/quotes/${type}` 
         },
         {
           "@type": "ListItem",
           "position": 3,
           "name": query,
-          "item": `https://maximusquotes.org/#/explore?type=${type}&q=${encodeURIComponent(query)}`
+          "item": `https://maximusquotes.org/quotes/${type}/${encodeURIComponent(query)}`
         }
       ]
     }
@@ -218,7 +227,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
       "@type": "Person",
       "name": query,
       "description": `Quotes and wisdom by ${query}.`,
-      "url": `https://maximusquotes.org/#/explore?type=author&q=${encodeURIComponent(query)}`
+      "url": `https://maximusquotes.org/quotes/author/${encodeURIComponent(query)}`
     });
   }
 

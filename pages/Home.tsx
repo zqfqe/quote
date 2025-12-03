@@ -31,7 +31,7 @@ const Home: React.FC<HomeProps> = ({ favorites, toggleFavorite }) => {
   }, []);
 
   // Structured Data: WebSite + FAQPage
-  // UPDATED: SearchAction target now uses clean URL (removed /#/)
+  // UPDATED: SearchAction target now uses clean URL /quotes/search/{term}
   const homeSchema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -41,7 +41,7 @@ const Home: React.FC<HomeProps> = ({ favorites, toggleFavorite }) => {
         "url": "https://maximusquotes.org",
         "potentialAction": {
           "@type": "SearchAction",
-          "target": "https://maximusquotes.org/explore?q={search_term_string}",
+          "target": "https://maximusquotes.org/quotes/search/{search_term_string}",
           "query-input": "required name=search_term_string"
         }
       },
@@ -125,9 +125,9 @@ const Home: React.FC<HomeProps> = ({ favorites, toggleFavorite }) => {
 
           <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm font-medium text-gray-500">
             <span>Popular:</span>
-            <Link to="/explore?type=topic&q=Life" className="hover:text-brand-600 underline decoration-dotted">Life</Link>
-            <Link to="/explore?type=topic&q=Love" className="hover:text-brand-600 underline decoration-dotted">Love</Link>
-            <Link to="/explore?type=topic&q=Success" className="hover:text-brand-600 underline decoration-dotted">Success</Link>
+            <Link to="/quotes/topic/Life" className="hover:text-brand-600 underline decoration-dotted">Life</Link>
+            <Link to="/quotes/topic/Love" className="hover:text-brand-600 underline decoration-dotted">Love</Link>
+            <Link to="/quotes/topic/Success" className="hover:text-brand-600 underline decoration-dotted">Success</Link>
           </div>
         </div>
       </section>
@@ -142,7 +142,7 @@ const Home: React.FC<HomeProps> = ({ favorites, toggleFavorite }) => {
           {collections.map((col, idx) => (
             <Link 
               key={idx} 
-              to={`/explore?type=${col.type}&q=${encodeURIComponent(col.query)}`}
+              to={`/quotes/${col.type}/${encodeURIComponent(col.query)}`}
               className={`p-4 rounded-xl transition-transform hover:scale-105 ${col.color} border border-black/5`}
             >
               <h3 className="font-bold text-sm md:text-base mb-1">{col.title}</h3>
