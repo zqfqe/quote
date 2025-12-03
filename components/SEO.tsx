@@ -20,49 +20,48 @@ const SEO: React.FC<SEOProps> = ({
   noindex = false
 }) => {
   const location = useLocation();
-  // CLEAN URL UPDATE: Removed the '/#' prefix. 
-  // For BrowserRouter, location.pathname is the full path (e.g., '/explore').
-  const canonicalUrl = `https://maximusquotes.org${location.pathname}${location.search}`;
+  const canonicalUrl = `https://maximusquotes.org${location.pathname}`;
 
   useEffect(() => {
     // 1. Update Title
-    document.title = title;
+    if (document.title !== title) {
+        document.title = title;
+    }
 
-    // 2. Update Meta Tags
-    const updateMeta = (name: string, content: string) => {
-      let tag = document.querySelector(`meta[name="${name}"]`) || document.querySelector(`meta[property="${name}"]`);
+    // Helper to update or create meta tags
+    const updateMeta = (selector: string, content: string, attrName: string = 'name', attrValue: string = '') => {
+      let tag = document.querySelector(selector);
       if (!tag) {
         tag = document.createElement('meta');
-        if (name.startsWith('og:') || name.startsWith('twitter:')) {
-          tag.setAttribute('property', name);
+        if (attrName === 'property') {
+            tag.setAttribute('property', attrValue);
         } else {
-          tag.setAttribute('name', name);
+            tag.setAttribute('name', attrValue);
         }
         document.head.appendChild(tag);
       }
       tag.setAttribute('content', content);
     };
 
-    updateMeta('description', description);
-    updateMeta('og:title', title);
-    updateMeta('og:description', description);
-    updateMeta('og:image', image);
-    updateMeta('og:url', canonicalUrl);
-    updateMeta('og:type', type);
-    updateMeta('twitter:title', title);
-    updateMeta('twitter:description', description);
-    updateMeta('twitter:image', image);
+    // 2. Standard Meta
+    updateMeta('meta[name="description"]', description, 'name', 'description');
 
-    // 3. Update Robots Meta (Soft 404 Prevention)
-    let robots = document.querySelector("meta[name='robots']");
-    if (!robots) {
-      robots = document.createElement('meta');
-      robots.setAttribute('name', 'robots');
-      document.head.appendChild(robots);
-    }
-    robots.setAttribute('content', noindex ? 'noindex' : 'index, follow');
+    // 3. Open Graph
+    updateMeta('meta[property="og:title"]', title, 'property', 'og:title');
+    updateMeta('meta[property="og:description"]', description, 'property', 'og:description');
+    updateMeta('meta[property="og:image"]', image, 'property', 'og:image');
+    updateMeta('meta[property="og:url"]', canonicalUrl, 'property', 'og:url');
+    updateMeta('meta[property="og:type"]', type || 'website', 'property', 'og:type');
 
-    // 4. Update Canonical Link
+    // 4. Twitter
+    updateMeta('meta[name="twitter:title"]', title, 'name', 'twitter:title');
+    updateMeta('meta[name="twitter:description"]', description, 'name', 'twitter:description');
+    updateMeta('meta[name="twitter:image"]', image, 'name', 'twitter:image');
+
+    // 5. Robots
+    updateMeta('meta[name="robots"]', noindex ? 'noindex' : 'index, follow', 'name', 'robots');
+
+    // 6. Canonical
     let link = document.querySelector("link[rel='canonical']") as HTMLLinkElement;
     if (!link) {
       link = document.createElement('link');
@@ -71,7 +70,8 @@ const SEO: React.FC<SEOProps> = ({
     }
     link.setAttribute('href', canonicalUrl);
 
-    // 5. Inject Schema.org JSON-LD
+    // 7. Schema.org (JSON-LD)
+    // We target the existing script tag or create one
     if (schema) {
       let script = document.querySelector("#seo-schema") as HTMLScriptElement;
       if (!script) {
