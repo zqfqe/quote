@@ -1,10 +1,10 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Quote } from '../types';
 import { Heart, Copy, Check, Download, Loader2, Link as LinkIcon, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import html2canvas from 'html2canvas';
-import { slugify } from '../utils';
+import { slugify, generateQuoteImage } from '../utils';
 
 interface QuoteCardProps {
   quote: Quote;
@@ -19,24 +19,17 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
   const cardRef = useRef<HTMLElement>(null);
 
   // Construct the Permalink
-  // Extract the ID format: type_slug_index
-  // We need to reverse engineer the type for the URL if it's not explicit, 
-  // but usually we can infer 'author' or 'topic' from the context or pass it down.
-  // However, simpler is to use a reliable URL structure.
-  // Let's assume the quote.id has the type prefix (e.g. "author_steve-jobs_0")
   const idParts = quote.id.split('_');
-  const type = idParts[0]; // 'author', 'movie', 'topic' etc
-  // The 'source' part might be multi-segment if the name had hyphens, so we rejoin everything between first and last part
-  const sourceSlug = idParts.slice(1, -1).join('_'); // We used _ in ID generation, but standard slug uses -. 
-  // Actually, processQuotes uses: `${categoryType}_${slugify(key)}_${index}`
-  // So `idParts[1]` is the slugified key.
+  const type = idParts[0]; 
   const source = idParts[1]; 
   
-  // Note: The ID generation in geminiService uses underscores as separators, but the slug inside is hyphenated.
-  // Example ID: "movie_the-godfather_0"
-  // Parts: ["movie", "the-godfather", "0"]
-  // So type=movie, source=the-godfather.
   const permalink = `/quote/${type}/${source}/${slugify(quote.text)}`;
+
+  // Generate SEO-friendly Text-Over-Image
+  // We use useMemo to avoid regenerating the Base64 string on every render
+  const generatedImage = useMemo(() => {
+    return generateQuoteImage(quote.text, quote.author);
+  }, [quote.text, quote.author]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(`"${quote.text}" — ${quote.author}`);
@@ -79,49 +72,57 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
       "@type": "Person",
       "name": quote.author
     },
-    "keywords": quote.category
+    "keywords": quote.category,
+    "image": generatedImage // Feed the text-rich image to Schema
   };
+
+  // SEO Optimized Image Metadata
+  const imageAlt = `Quote: "${quote.text}" by ${quote.author}`;
+  const imageTitle = `Read full quote by ${quote.author} about ${quote.category}`;
 
   if (featured) {
     return (
       <article 
         ref={cardRef}
-        className="relative group overflow-hidden rounded-2xl shadow-2xl h-[400px] md:h-[500px] flex items-center justify-center text-center p-8 transition-transform hover:scale-[1.01] duration-300"
+        className="relative group overflow-hidden rounded-2xl shadow-2xl h-[400px] md:h-[500px] flex items-center justify-center text-center p-8 transition-transform hover:scale-[1.01] duration-300 bg-gray-900"
       >
         <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
         
+        {/* Primary visual image (Generated SVG for relevance) */}
         <img 
-          src={quote.imageUrl || 'https://picsum.photos/800/600'} 
-          alt={`Inspirational Quote by ${quote.author}: ${quote.text}`}
-          className="absolute inset-0 w-full h-full object-cover z-0 transition-transform duration-700 group-hover:scale-110"
+          src={generatedImage}
+          alt={imageAlt}
+          title={imageTitle}
+          className="absolute inset-0 w-full h-full object-cover z-0 transition-transform duration-700 group-hover:scale-110 opacity-90"
           loading="eager"
         />
         
-        <div className="absolute inset-0 bg-black/50 z-10" />
+        {/* Subtle overlay to ensure text contrast if user hovers or for style */}
+        <div className="absolute inset-0 bg-white/60 z-10 backdrop-blur-[2px]" />
         
         <div className="relative z-20 max-w-2xl mx-auto flex flex-col items-center">
-          <span className="inline-block px-3 py-1 mb-6 text-xs font-semibold tracking-wider text-white uppercase bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
+          <span className="inline-block px-3 py-1 mb-6 text-xs font-semibold tracking-wider text-brand-900 uppercase bg-brand-100/80 backdrop-blur-sm rounded-full border border-brand-200">
             Quote of the Day
           </span>
           <blockquote className="m-0 p-0 border-0">
-            <Link to={permalink} className="hover:text-brand-100 transition-colors">
-              <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-6 leading-tight drop-shadow-lg">
+            <Link to={permalink} className="hover:text-brand-700 transition-colors">
+              <h2 className="text-3xl md:text-5xl font-serif font-bold text-gray-900 mb-6 leading-tight drop-shadow-sm">
                 "{quote.text}"
               </h2>
             </Link>
           </blockquote>
-          <Link to={`/quotes/author/${slugify(quote.author)}`} className="text-xl md:text-2xl text-brand-100 font-medium hover:text-white transition drop-shadow-md">
+          <Link to={`/quotes/author/${slugify(quote.author)}`} className="text-xl md:text-2xl text-gray-700 font-medium hover:text-brand-600 transition">
             <cite className="not-italic">— {quote.author}</cite>
           </Link>
           
-          <div className="mt-4 text-white/40 text-xs font-medium tracking-widest uppercase">
+          <div className="mt-4 text-gray-400 text-xs font-medium tracking-widest uppercase">
             MaximusQuotes.org
           </div>
           
           <div className="mt-8 flex items-center space-x-4 action-buttons">
              <button 
               onClick={() => onToggleFavorite(quote)}
-              className="p-3 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md transition-all text-white border border-white/20"
+              className="p-3 bg-white hover:bg-gray-50 rounded-full shadow-md transition-all text-gray-600 border border-gray-200"
               title="Add to Favorites"
               aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
             >
@@ -131,7 +132,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
             <button 
               onClick={handleDownloadImage}
               disabled={isDownloading}
-              className="p-3 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md transition-all text-white border border-white/20"
+              className="p-3 bg-white hover:bg-gray-50 rounded-full shadow-md transition-all text-gray-600 border border-gray-200"
               title="Download Image"
               aria-label="Download quote as image"
             >
@@ -140,7 +141,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
 
             <button 
               onClick={handleCopy}
-              className="px-6 py-3 bg-brand-600 hover:bg-brand-50 text-white rounded-full font-medium transition-all shadow-lg hover:shadow-brand-500/50 flex items-center space-x-2"
+              className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-full font-medium transition-all shadow-lg hover:shadow-brand-500/50 flex items-center space-x-2"
               aria-label="Copy quote text"
             >
               {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
@@ -159,6 +160,9 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
     >
       <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       
+      {/* Hidden image for SEO/Sharing purposes - allows 'Save Image As' to work nicely too */}
+      <img src={generatedImage} alt={imageAlt} className="hidden" />
+
       <blockquote className="mb-4 m-0 p-0 border-0">
         <span className="text-4xl text-brand-200 font-serif leading-none">“</span>
         <Link to={permalink} className="hover:text-brand-800 transition-colors block">

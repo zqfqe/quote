@@ -30,6 +30,19 @@ const slugify = (text) => {
     .replace(/\-\-+/g, '-');
 };
 
+// Utility: Escape XML
+const escapeXml = (unsafe) => {
+  return unsafe.replace(/[<>&'"]/g, (c) => {
+    switch (c) {
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '&': return '&amp;';
+      case '\'': return '&apos;';
+      case '"': return '&quot;';
+    }
+  });
+};
+
 // Helper to parse data files and return both keys AND quotes
 function parseData(filePath) {
   const data = new Map(); // key -> array of quotes
@@ -37,7 +50,6 @@ function parseData(filePath) {
     const content = fs.readFileSync(filePath, 'utf8');
     
     // Regex to find "Key Name": [ ... ]
-    // This is a simplified regex, assuming structure matches data files
     const keyRegex = /"([^"]+)":\s*\[([\s\S]*?)\]/g; 
     let match;
     
@@ -89,7 +101,7 @@ let urls = [
   { loc: '/terms', priority: '0.5' },
 ];
 
-console.log('Generating Sitemap with Deep Links...');
+console.log('Generating Sitemap with Deep Links & Image Extensions...');
 
 dataFiles.forEach(({ type, file }) => {
   const fullPath = path.resolve(__dirname, file);
@@ -105,14 +117,23 @@ dataFiles.forEach(({ type, file }) => {
       priority: '0.8'
     });
 
-    // 2. Individual Quote URLs
-    quotes.forEach(quoteText => {
+    // 2. Individual Quote URLs with Image Metadata
+    quotes.forEach((quoteText, index) => {
       const safeQuote = slugify(quoteText);
       // Limit URL length to avoid SEO issues, though uniqueness is key
       if (safeQuote.length > 0) {
+        // Replicate the ID generation logic used in geminiService to get the correct seed
+        // Pattern: type_keySlug_index
+        const seed = `${type}_${safeKey}_${index}`;
+        const imageUrl = `https://picsum.photos/seed/${seed}/800/600?grayscale&blur=2`;
+        
         urls.push({
           loc: `/quote/${type}/${safeKey}/${safeQuote}`,
-          priority: '0.6'
+          priority: '0.6',
+          image: {
+            loc: imageUrl,
+            title: `Quote by ${key}: ${quoteText.substring(0, 100)}${quoteText.length > 100 ? '...' : ''}`
+          }
         });
       }
     });
@@ -120,12 +141,17 @@ dataFiles.forEach(({ type, file }) => {
 });
 
 const sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls.map(url => `  <url>
     <loc>${BASE_URL}${url.loc.replace(/&/g, '&amp;')}</loc>
     <lastmod>${TODAY}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>${url.priority}</priority>
+    <priority>${url.priority}</priority>${url.image ? `
+    <image:image>
+      <image:loc>${url.image.loc.replace(/&/g, '&amp;')}</image:loc>
+      <image:title>${escapeXml(url.image.title)}</image:title>
+    </image:image>` : ''}
   </url>`).join('\n')}
 </urlset>`;
 
@@ -135,4 +161,4 @@ if (!fs.existsSync(publicDir)) {
 }
 
 fs.writeFileSync(path.join(publicDir, 'sitemap.xml'), sitemapContent);
-console.log(`Sitemap generated with ${urls.length} URLs at public/sitemap.xml`);
+console.log(`Sitemap generated with ${urls.length} URLs (including images) at public/sitemap.xml`);
