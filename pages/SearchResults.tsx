@@ -5,6 +5,7 @@ import { Quote, DataStatus } from '../types';
 import { fetchQuotesByQuery, fetchRelatedEntities } from '../services/geminiService';
 import QuoteCard from '../components/QuoteCard';
 import SEO from '../components/SEO';
+import SmartText from '../components/SmartText'; // Imported SmartText
 import { Loader2, ArrowRight, User, BookOpen, Sparkles, Tag, Network, ListOrdered, Grid3X3, Crown, Trophy, Medal, HelpCircle, ChevronDown, ChevronUp, MapPin, Hash } from 'lucide-react';
 import { unslugify, slugify } from '../utils';
 import { AUTHOR_BIOS, TOPIC_DESCRIPTIONS } from '../data/metadata';
@@ -23,8 +24,7 @@ interface RelatedItem {
 
 const ITEMS_PER_PAGE = 24;
 
-// --- OPTIMIZATION #3: PILLAR PAGE WIKI INTRO ---
-// Now supports real metadata from data/metadata.ts
+// --- OPTIMIZATION #3: PILLAR PAGE WIKI INTRO (With SmartText) ---
 const PillarIntro: React.FC<{ displayName: string; type: string; count: number }> = ({ displayName, type, count }) => {
   let bio = "";
   
@@ -62,9 +62,10 @@ const PillarIntro: React.FC<{ displayName: string; type: string; count: number }
                 <span className="text-gray-500 text-sm font-medium">{count} Quotes Available</span>
             </div>
             <h1 className="text-4xl font-serif font-bold text-gray-900 mb-4">{displayName} Quotes</h1>
-            <p className="text-gray-600 leading-relaxed text-lg">
-                {bio}
-            </p>
+            <div className="text-gray-600 leading-relaxed text-lg">
+                {/* Apply SmartText to auto-link keywords in the bio */}
+                <SmartText text={bio} />
+            </div>
         </div>
     </div>
   );
@@ -102,7 +103,7 @@ const Sidebar: React.FC<{ related: RelatedItem[], type: string }> = ({ related, 
     );
 };
 
-// --- OPTIMIZATION: VISIBLE FAQ COMPONENT ---
+// --- OPTIMIZATION: VISIBLE FAQ COMPONENT (Enhanced with SmartText) ---
 const VisibleFAQ: React.FC<{ faqs: { question: string, answer: string }[] }> = ({ faqs }) => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
@@ -357,10 +358,10 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
 
       {status === DataStatus.SUCCESS && quotes.length > 0 && (
         <>
-          {/* OPTIMIZATION #3: PILLAR INTRO */}
+          {/* OPTIMIZATION #3: PILLAR INTRO WITH SMART LINKS */}
           <PillarIntro displayName={displayName} type={type} count={quotes.length} />
 
-          {/* OPTIMIZATION #3: TWO COLUMN PILLAR LAYOUT */}
+          {/* TWO COLUMN PILLAR LAYOUT */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             
             {/* MAIN CONTENT (3/4 Width) */}

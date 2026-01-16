@@ -5,7 +5,8 @@ import { Quote, DataStatus } from '../types';
 import { fetchQuoteDetail } from '../services/geminiService';
 import QuoteCard from '../components/QuoteCard';
 import SEO from '../components/SEO';
-import { Loader2, ArrowRight, Quote as QuoteIcon, User, Lightbulb, BookOpen } from 'lucide-react';
+import SmartText from '../components/SmartText';
+import { Loader2, ArrowRight, Quote as QuoteIcon, User, Lightbulb, BookOpen, Info } from 'lucide-react';
 import { slugify, unslugify } from '../utils';
 
 interface QuoteDetailProps {
@@ -13,61 +14,103 @@ interface QuoteDetailProps {
   toggleFavorite: (q: Quote) => void;
 }
 
-// --- OPTIMIZATION #2: ANALYSIS GENERATOR ---
-// Generates a structured "Analysis" section to add unique content depth
+// --- OPTIMIZATION #2 & #3: FEATURED SNIPPET TARGETING + SMART LINKS ---
 const QuoteAnalysis: React.FC<{ quote: Quote, bio?: string }> = ({ quote, bio }) => {
-    // Extract keywords for dynamic sentence construction
     const words = quote.text.split(' ').length;
-    const isLong = words > 15;
-    const isShort = words < 8;
+    const isShort = words < 10;
     
+    // Constructing semantic content for "Meaning" snippet
+    const analysisText = isShort
+        ? `This famous quote by ${quote.author} is a concise yet powerful reflection on ${quote.category.toLowerCase()}. Its brevity allows it to serve as a daily mantra, reminding us that simplicity often holds the deepest truth.`
+        : `In this profound statement, ${quote.author} explores the complexities of ${quote.category.toLowerCase()}. The quote suggests that our perception of the world is deeply intertwined with our internal state, challenging the reader to look inward for answers.`;
+
+    const contextText = `Quotes about ${quote.category} typically address the human condition, and this line is no exception. It has resonated with audiences for generations because it speaks to a universal truth about ${quote.category.toLowerCase()}.`;
+
     return (
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Left Col: Context */}
-            <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="bg-purple-50 p-2 rounded-lg">
-                        <Lightbulb className="w-5 h-5 text-purple-600" />
+        <div className="mt-16 grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            {/* Main Content - Optimizing for "Meaning" Featured Snippet */}
+            <div className="lg:col-span-8 space-y-8">
+                <section className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+                    <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
+                        <div className="bg-brand-50 p-2 rounded-xl">
+                            <Lightbulb className="w-6 h-6 text-brand-600" />
+                        </div>
+                        <h2 className="text-2xl font-serif font-bold text-gray-900">
+                            What is the meaning of this quote?
+                        </h2>
                     </div>
-                    <h3 className="text-lg font-bold text-gray-900">Interpretation & Analysis</h3>
-                </div>
-                <div className="text-gray-600 leading-relaxed space-y-4 text-sm md:text-base">
-                    <p>
-                        <strong>"{quote.text}"</strong> is a powerful statement about <Link to={`/quotes/topic/${slugify(quote.category)}`} className="text-brand-600 hover:underline">{quote.category}</Link>. 
-                        {isShort 
-                            ? " Despite its brevity, this quote packs a significant punch, distilling a complex idea into a memorable aphorism." 
-                            : " The detailed nature of this quote allows for a nuanced exploration of the subject matter, offering deep insight into the author's perspective."}
-                    </p>
-                    <p>
-                        Quotes by <strong>{quote.author}</strong> often reflect themes of {quote.category.toLowerCase()}, and this specific line is a prime example. 
-                        It challenges the reader to reconsider their own views on {quote.category.toLowerCase()} and serves as a timeless reminder of the human condition.
-                    </p>
-                </div>
+                    <div className="prose prose-lg text-gray-600 leading-relaxed">
+                        <p>
+                            <SmartText text={analysisText} />
+                        </p>
+                        <p>
+                            <SmartText text={contextText} />
+                        </p>
+                    </div>
+                </section>
+
+                {bio && (
+                    <section className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+                        <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
+                            <div className="bg-purple-50 p-2 rounded-xl">
+                                <User className="w-6 h-6 text-purple-600" />
+                            </div>
+                            <h2 className="text-2xl font-serif font-bold text-gray-900">
+                                Who is {quote.author}?
+                            </h2>
+                        </div>
+                        <div className="prose prose-lg text-gray-600 leading-relaxed">
+                            <p>
+                                <SmartText text={bio} />
+                            </p>
+                        </div>
+                        <div className="mt-6">
+                            <Link 
+                                to={`/quotes/author/${slugify(quote.author)}`} 
+                                className="inline-flex items-center font-bold text-purple-700 hover:text-purple-900 transition-colors"
+                            >
+                                More quotes by {quote.author} <ArrowRight className="w-4 h-4 ml-2" />
+                            </Link>
+                        </div>
+                    </section>
+                )}
             </div>
 
-            {/* Right Col: Author Context */}
-            <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="bg-blue-50 p-2 rounded-lg">
-                        <User className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-900">About {quote.author}</h3>
+            {/* Sidebar - Metadata & Quick Facts */}
+            <div className="lg:col-span-4 space-y-6">
+                <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Quote Details</h3>
+                    <ul className="space-y-4">
+                        <li className="flex flex-col">
+                            <span className="text-xs text-gray-500 font-medium">Author</span>
+                            <Link to={`/quotes/author/${slugify(quote.author)}`} className="text-lg font-bold text-gray-900 hover:text-brand-600">
+                                {quote.author}
+                            </Link>
+                        </li>
+                        <li className="flex flex-col">
+                            <span className="text-xs text-gray-500 font-medium">Category</span>
+                            <Link to={`/quotes/topic/${slugify(quote.category)}`} className="text-lg font-bold text-gray-900 hover:text-brand-600">
+                                {quote.category}
+                            </Link>
+                        </li>
+                        <li className="flex flex-col">
+                            <span className="text-xs text-gray-500 font-medium">Word Count</span>
+                            <span className="text-gray-700 font-medium">{words} words</span>
+                        </li>
+                    </ul>
                 </div>
-                <div className="text-gray-600 leading-relaxed space-y-4 text-sm md:text-base">
-                    {bio ? (
-                        <p>{bio}</p>
-                    ) : (
-                        <p>
-                            {quote.author} is a renowned figure associated with wisdom regarding {quote.category}. 
-                            Their contributions to literature, philosophy, or culture have solidified their place in history.
-                        </p>
-                    )}
-                    <Link 
-                        to={`/quotes/author/${slugify(quote.author)}`} 
-                        className="inline-flex items-center text-brand-600 font-bold hover:text-brand-800 mt-2 group"
-                    >
-                        View all quotes by {quote.author} <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                    </Link>
+
+                <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100">
+                    <div className="flex items-start gap-3">
+                        <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                        <div>
+                            <h4 className="font-bold text-blue-900 text-sm mb-1">Did you know?</h4>
+                            <p className="text-sm text-blue-800 leading-relaxed">
+                                You can click on highlighted keywords in the description to explore related topics and authors!
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -171,7 +214,7 @@ const QuoteDetail: React.FC<QuoteDetailProps> = ({ favorites, toggleFavorite }) 
         <span className="truncate max-w-[200px] font-medium text-gray-900">Quote</span>
       </nav>
 
-      <div className="max-w-4xl mx-auto mb-20">
+      <div className="max-w-4xl mx-auto mb-12">
         <QuoteCard 
           quote={quote} 
           isFavorite={favorites.includes(quote.id)} 
@@ -179,7 +222,7 @@ const QuoteDetail: React.FC<QuoteDetailProps> = ({ favorites, toggleFavorite }) 
           featured={true}
         />
         
-        {/* OPTIMIZATION #2: Content Differentiation Analysis Module */}
+        {/* REFACTORED: Featured Snippet Optimized Analysis */}
         <QuoteAnalysis quote={quote} bio={bio} />
       </div>
 
