@@ -5,8 +5,9 @@ import { Quote, DataStatus } from '../types';
 import { fetchQuotesByQuery, fetchRelatedEntities } from '../services/geminiService';
 import QuoteCard from '../components/QuoteCard';
 import SEO from '../components/SEO';
-import { Loader2, ArrowRight, User, BookOpen, Sparkles, Tag, Network, ListOrdered, Grid3X3, Crown, Trophy, Medal, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Loader2, ArrowRight, User, BookOpen, Sparkles, Tag, Network, ListOrdered, Grid3X3, Crown, Trophy, Medal, HelpCircle, ChevronDown, ChevronUp, MapPin, Hash } from 'lucide-react';
 import { unslugify, slugify } from '../utils';
+import { AUTHOR_BIOS, TOPIC_DESCRIPTIONS } from '../data/metadata';
 
 interface SearchResultsProps {
   favorites: string[];
@@ -22,141 +23,93 @@ interface RelatedItem {
 
 const ITEMS_PER_PAGE = 24;
 
-// --- 1. SEO: Rich Content Generator (Thin Content Fix) ---
-const RichIntro: React.FC<{ query: string; type: string; count: number; authorName?: string }> = ({ query, type, count, authorName }) => {
-  const qCap = query; // Assumes query is already formatted nicely
-  const authCap = authorName ? authorName : '';
+// --- OPTIMIZATION #3: PILLAR PAGE WIKI INTRO ---
+// Now supports real metadata from data/metadata.ts
+const PillarIntro: React.FC<{ displayName: string; type: string; count: number }> = ({ displayName, type, count }) => {
+  let bio = "";
+  
+  // Try to find rich metadata
+  if (type === 'author') bio = AUTHOR_BIOS[displayName] || "";
+  if (type === 'topic') bio = TOPIC_DESCRIPTIONS[displayName] || "";
 
-  let content = <></>;
-
-  switch (type) {
-    case 'author':
-      content = (
-        <>
-          <p className="text-gray-600 leading-relaxed mb-4">
-            Welcome to the curated collection of <strong>{qCap}</strong> quotes. 
-            Known for their profound impact on {count > 10 ? "literature and culture" : "their field"}, {qCap}'s words continue to resonate with readers around the world.
-          </p>
-          <p className="text-gray-500 text-sm">
-            Whether you are seeking inspiration, wisdom, or a fresh perspective, these {count} selected quotes capture the essence of {qCap}'s thinking. 
-            Browse, save your favorites, and share the wisdom.
-          </p>
-        </>
-      );
-      break;
-    case 'topic':
-      content = (
-        <>
-          <p className="text-gray-600 leading-relaxed mb-4">
-            Explore our extensive library of quotes about <strong>{qCap}</strong>. 
-            In life, understanding {query.toLowerCase()} is often the key to growth and happiness. 
-            We have compiled {count} of the most powerful sayings and proverbs to help you reflect on this important subject.
-          </p>
-          <p className="text-gray-500 text-sm">
-            From ancient philosophers to modern thought leaders, these perspectives on {qCap} offer timeless guidance.
-          </p>
-        </>
-      );
-      break;
-    // ... other cases remain same ...
-    default:
-      content = (
-        <>
-          <p className="text-gray-600 leading-relaxed mb-4">
-            You are browsing results for <strong>"{qCap}"</strong>. 
-            We found {count} unique quotes that match your interest. 
-            Our database is constantly updated to bring you the most relevant and inspiring words from across history.
-          </p>
-        </>
-      );
+  // If no rich bio, generate specific descriptive text
+  if (!bio) {
+      if (type === 'author') bio = `${displayName} is a celebrated figure whose words continue to inspire millions. This collection features ${count} of their most impactful quotes.`;
+      else if (type === 'topic') bio = `Explore the deeper meaning of ${displayName} through this curated collection of ${count} quotes from history's greatest minds.`;
+      else bio = `Discover ${count} hand-picked quotes related to ${displayName}, carefully organized for your inspiration.`;
   }
 
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-10 shadow-sm max-w-3xl mx-auto text-center md:text-left">
-      <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-        <div className="bg-brand-50 p-3 rounded-full shrink-0 hidden md:block">
-          <Sparkles className="w-6 h-6 text-brand-600" />
+    <div className="bg-white rounded-3xl p-8 mb-10 shadow-lg border border-gray-100 flex flex-col md:flex-row gap-8 items-start">
+        {/* Placeholder Avatar/Icon */}
+        <div className="shrink-0">
+            {type === 'author' ? (
+                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-brand-100 to-indigo-100 flex items-center justify-center border-4 border-white shadow-md">
+                    <User className="w-10 h-10 md:w-14 md:h-14 text-brand-600" />
+                </div>
+            ) : (
+                <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center border-4 border-white shadow-md">
+                    <Hash className="w-10 h-10 md:w-14 md:h-14 text-purple-600" />
+                </div>
+            )}
         </div>
-        <div>{content}</div>
-      </div>
+
+        <div className="flex-grow">
+            <div className="flex items-center gap-3 mb-2">
+                <span className="bg-gray-900 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                    {type}
+                </span>
+                <span className="text-gray-500 text-sm font-medium">{count} Quotes Available</span>
+            </div>
+            <h1 className="text-4xl font-serif font-bold text-gray-900 mb-4">{displayName} Quotes</h1>
+            <p className="text-gray-600 leading-relaxed text-lg">
+                {bio}
+            </p>
+        </div>
     </div>
   );
 };
 
-// --- 2. SEO: Smart Cross-Linking Component ---
-const SmartCrossLink: React.FC<{ type: string; quote: Quote }> = ({ type, quote }) => {
-  if (['book', 'movie', 'lyrics', 'poetry'].includes(type)) {
-    const authorName = quote.author;
-    const linkUrl = `/quotes/author/${slugify(authorName)}`;
-    
+// --- OPTIMIZATION #3: SIDEBAR COMPONENT ---
+const Sidebar: React.FC<{ related: RelatedItem[], type: string }> = ({ related, type }) => {
+    if (!related || related.length === 0) return null;
+
+    const title = type === 'topic' ? "Top Contributors" : "Related Topics";
+
     return (
-      <div className="flex justify-center mb-10">
-        <Link 
-          to={linkUrl}
-          className="group flex items-center space-x-3 px-6 py-3 bg-white border border-gray-200 hover:border-brand-300 rounded-full shadow-sm hover:shadow-md transition-all"
-        >
-          <div className="bg-gray-100 group-hover:bg-brand-50 p-2 rounded-full transition-colors">
-            <User className="w-4 h-4 text-gray-600 group-hover:text-brand-600" />
-          </div>
-          <div className="text-left">
-            <span className="block text-xs text-gray-400 uppercase tracking-wider font-semibold">More from Creator</span>
-            <span className="block text-sm font-bold text-gray-900 group-hover:text-brand-700">{authorName}</span>
-          </div>
-          <ArrowRight className="w-4 h-4 text-gray-400 group-hover:translate-x-1 transition-transform" />
-        </Link>
-      </div>
-    );
-  }
-  return null;
-};
-
-// --- 3. SEO: Semantic Spider Web ---
-const SpiderWeb: React.FC<{ type: string; name: string; related: RelatedItem[] }> = ({ type, name, related }) => {
-  if (!related || related.length === 0) return null;
-
-  const title = type === 'topic' 
-    ? `Top Voices on "${name}"`
-    : `Common Themes by ${name}`;
-
-  return (
-    <div className="mt-20 border-t border-gray-100 pt-16">
-      <div className="flex flex-col items-center text-center mb-8">
-        <div className="bg-indigo-50 p-3 rounded-full mb-4">
-          <Network className="w-6 h-6 text-indigo-600" />
+        <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 sticky top-24">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                <Network className="w-5 h-5 mr-2 text-brand-600" />
+                {title}
+            </h3>
+            <div className="flex flex-col gap-2">
+                {related.map((item, idx) => (
+                    <Link 
+                        key={idx}
+                        to={`/quotes/${item.type}/${item.slug}`}
+                        className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-100 hover:border-brand-300 hover:shadow-sm transition-all group"
+                    >
+                        <span className="text-gray-700 font-medium group-hover:text-brand-700 text-sm truncate max-w-[150px]">
+                            {item.name}
+                        </span>
+                        <span className="bg-gray-100 text-gray-400 text-xs px-2 py-1 rounded-md">
+                            {item.count}
+                        </span>
+                    </Link>
+                ))}
+            </div>
         </div>
-        <h3 className="text-2xl font-serif font-bold text-gray-900">{title}</h3>
-        <p className="text-gray-500 mt-2 max-w-lg">
-          Dive deeper into the semantic connections we've found in our library.
-        </p>
-      </div>
-
-      <div className="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto">
-        {related.map((item, idx) => (
-          <Link 
-            key={idx}
-            to={`/quotes/${item.type}/${item.slug}`}
-            className="group relative inline-flex items-center bg-white border border-gray-200 hover:border-indigo-300 px-5 py-3 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
-          >
-            <span className={`w-2 h-2 rounded-full mr-3 ${item.type === 'author' ? 'bg-purple-400' : 'bg-blue-400'}`}></span>
-            <span className="font-medium text-gray-700 group-hover:text-indigo-700">{item.name}</span>
-            <span className="ml-2 bg-gray-100 text-gray-400 text-xs py-0.5 px-2 rounded-md group-hover:bg-indigo-50 group-hover:text-indigo-500 transition-colors">
-              {item.count}
-            </span>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
+    );
 };
 
-// --- 4. SEO: VISIBLE FAQ Component (NEW) ---
+// --- OPTIMIZATION: VISIBLE FAQ COMPONENT ---
 const VisibleFAQ: React.FC<{ faqs: { question: string, answer: string }[] }> = ({ faqs }) => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   if (!faqs || faqs.length === 0) return null;
 
   return (
-    <div className="mt-20 max-w-3xl mx-auto bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div className="mt-12 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="bg-brand-50 p-6 border-b border-brand-100 flex items-center gap-3">
         <HelpCircle className="w-6 h-6 text-brand-600" />
         <h3 className="text-xl font-bold text-gray-900">Frequently Asked Questions</h3>
@@ -275,7 +228,6 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
           title: `Top ${titleCap} Quotes & Inspiration - Maximus Quotes`,
           desc: `Looking for quotes about ${titleCap}? Browse our extensive collection of the best ${titleCap} quotes to inspire and motivate you.`
         };
-      // ... default cases
       default:
         return {
           title: `${titleCap} Quotes - Search Results - Maximus Quotes`,
@@ -284,14 +236,12 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
     }
   };
 
-  // --- Logic to Generate FAQ Data (Shared by SEO Schema and Visible UI) ---
   const getFaqData = () => {
     if (quotes.length === 0) return [];
 
     const faqs = [];
     const topQuotes = quotes.slice(0, 5); 
 
-    // Q1
     let q1 = "";
     let a1 = `Here are some of the best ${displayName} quotes found in our collection: <ul>`;
     topQuotes.forEach(q => {
@@ -307,7 +257,6 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
 
     faqs.push({ question: q1, answer: a1 });
 
-    // Q2
     if (topQuotes.length > 0) {
         const bestQuote = topQuotes[0];
         let q2 = "";
@@ -330,7 +279,6 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
   const faqs = getFaqData();
   const seo = getSEODetails();
   const visibleQuotes = quotes.slice(0, visibleCount);
-  const primaryAuthor = quotes.length > 0 ? quotes[0].author : undefined;
 
   // --- Construct JSON-LD Schema ---
   const graph: any[] = [
@@ -388,29 +336,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <SEO title={seo.title} description={seo.desc} schema={{"@context": "https://schema.org", "@graph": graph}} noindex={status === DataStatus.SUCCESS && quotes.length === 0} />
 
-      {/* Header Section */}
-      <div className="mb-8 text-center max-w-4xl mx-auto relative">
-        <div className="flex items-center justify-center text-sm text-gray-500 mb-4 space-x-2">
-          <Link to="/" className="hover:text-brand-600">Home</Link>
-          <span>/</span>
-          <Link to={`/quotes/${type}/a`} className="capitalize hover:text-brand-600">{type}</Link>
-          <span>/</span>
-          <span className="font-medium text-gray-900">{displayName}</span>
-        </div>
-
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-50 text-brand-700 text-sm font-semibold mb-4 border border-brand-100">
-            {type === 'movie' && <Tag className="w-3 h-3" />}
-            {type === 'book' && <BookOpen className="w-3 h-3" />}
-            {type === 'author' && <User className="w-3 h-3" />}
-            <span className="uppercase tracking-wide">{type === 'tv' ? 'TV Show' : type === 'game' ? 'Video Game' : type}</span>
-        </div>
-        
-        <h1 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 mb-6">
-          {isListView ? `Top ${quotes.length} ${displayName} Quotes Ranked` : `${displayName} Quotes`}
-        </h1>
-
-        {/* View Toggle */}
-        <div className="flex justify-center mb-8">
+      {/* View Switcher Mobile Only - Hidden on Desktop */}
+      <div className="md:hidden flex justify-center mb-6">
             <div className="inline-flex bg-gray-100 p-1 rounded-lg border border-gray-200">
                 <Link to={`/quotes/${type}/${rawQuery}`} className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-all ${!isListView ? 'bg-white text-brand-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}>
                     <Grid3X3 className="w-4 h-4 mr-2" /> Grid
@@ -419,7 +346,6 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
                     <ListOrdered className="w-4 h-4 mr-2" /> List
                 </Link>
             </div>
-        </div>
       </div>
 
       {status === DataStatus.LOADING && (
@@ -431,43 +357,67 @@ const SearchResults: React.FC<SearchResultsProps> = ({ favorites, toggleFavorite
 
       {status === DataStatus.SUCCESS && quotes.length > 0 && (
         <>
-          <SmartCrossLink type={type} quote={quotes[0]} />
-          <RichIntro query={displayName} type={type} count={quotes.length} authorName={primaryAuthor} />
+          {/* OPTIMIZATION #3: PILLAR INTRO */}
+          <PillarIntro displayName={displayName} type={type} count={quotes.length} />
 
-          {isListView ? (
-            <div className="max-w-4xl mx-auto space-y-12">
-                {visibleQuotes.map((quote, index) => (
-                    <div key={quote.id} className="flex flex-col md:flex-row gap-6 relative group">
-                        <div className="shrink-0 flex flex-col items-center md:items-end w-16 pt-2">
-                            {index === 0 && <Crown className="w-8 h-8 text-yellow-500 mb-1" fill="currentColor" />}
-                            {index === 1 && <Medal className="w-8 h-8 text-gray-400 mb-1" />}
-                            {index === 2 && <Trophy className="w-8 h-8 text-orange-400 mb-1" />}
-                            <span className="text-5xl font-black text-gray-200 leading-none">#{index + 1}</span>
-                        </div>
-                        <div className="flex-grow">
-                            <QuoteCard quote={quote} isFavorite={favorites.includes(quote.id)} onToggleFavorite={toggleFavorite} />
-                        </div>
+          {/* OPTIMIZATION #3: TWO COLUMN PILLAR LAYOUT */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            
+            {/* MAIN CONTENT (3/4 Width) */}
+            <div className="lg:col-span-3">
+                {isListView ? (
+                    <div className="space-y-12">
+                        {visibleQuotes.map((quote, index) => (
+                            <div key={quote.id} className="flex flex-col md:flex-row gap-6 relative group">
+                                <div className="shrink-0 flex flex-col items-center md:items-end w-16 pt-2">
+                                    {index === 0 && <Crown className="w-8 h-8 text-yellow-500 mb-1" fill="currentColor" />}
+                                    {index === 1 && <Medal className="w-8 h-8 text-gray-400 mb-1" />}
+                                    {index === 2 && <Trophy className="w-8 h-8 text-orange-400 mb-1" />}
+                                    <span className="text-5xl font-black text-gray-200 leading-none">#{index + 1}</span>
+                                </div>
+                                <div className="flex-grow">
+                                    <QuoteCard quote={quote} isFavorite={favorites.includes(quote.id)} onToggleFavorite={toggleFavorite} />
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                ))}
-            </div>
-          ) : (
-            <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-              {visibleQuotes.map((quote) => (
-                <QuoteCard key={quote.id} quote={quote} isFavorite={favorites.includes(quote.id)} onToggleFavorite={toggleFavorite} />
-              ))}
-            </div>
-          )}
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {visibleQuotes.map((quote) => (
+                            <QuoteCard key={quote.id} quote={quote} isFavorite={favorites.includes(quote.id)} onToggleFavorite={toggleFavorite} />
+                        ))}
+                    </div>
+                )}
 
-          {visibleCount < quotes.length && (
-            <div ref={observerTarget} className="py-10 flex justify-center">
-              <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
-            </div>
-          )}
+                {visibleCount < quotes.length && (
+                    <div ref={observerTarget} className="py-10 flex justify-center">
+                    <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+                    </div>
+                )}
 
-          <SpiderWeb type={type} name={displayName} related={relatedEntities} />
-          
-          {/* OPTIMIZATION #1: VISIBLE FAQ */}
-          <VisibleFAQ faqs={faqs} />
+                {/* FAQ SECTION IN MAIN CONTENT */}
+                <VisibleFAQ faqs={faqs} />
+            </div>
+
+            {/* SIDEBAR (1/4 Width) - Hidden on mobile, visible on LG */}
+            <div className="hidden lg:block lg:col-span-1">
+                <Sidebar related={relatedEntities} type={type} />
+                
+                {/* Desktop View Switcher */}
+                <div className="mt-8 p-4 bg-white border border-gray-100 rounded-2xl shadow-sm">
+                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">View Mode</h4>
+                    <div className="flex flex-col gap-2">
+                        <Link to={`/quotes/${type}/${rawQuery}`} className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${!isListView ? 'bg-brand-50 text-brand-700 border border-brand-200' : 'text-gray-600 hover:bg-gray-50'}`}>
+                            <Grid3X3 className="w-4 h-4 mr-3" /> Grid View
+                        </Link>
+                        <Link to={`/quotes/${type}/${rawQuery}/best`} className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${isListView ? 'bg-brand-50 text-brand-700 border border-brand-200' : 'text-gray-600 hover:bg-gray-50'}`}>
+                            <ListOrdered className="w-4 h-4 mr-3" /> Ranked List
+                        </Link>
+                    </div>
+                </div>
+            </div>
+
+          </div>
         </>
       )}
 

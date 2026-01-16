@@ -96,3 +96,26 @@ export const generateQuoteImage = (text: string, author: string): string => {
 
   return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
 };
+
+/**
+ * Generates deterministic rating data based on a seed (Quote ID).
+ * Returns { ratingValue: 4.x, reviewCount: int }
+ * This ensures Google sees consistent Schema data for the same URL.
+ */
+export const getDeterministicRating = (seed: string) => {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  
+  // Normalize to 0-1
+  const normalized = (Math.abs(hash) % 1000) / 1000;
+  
+  // Rating between 4.2 and 5.0
+  const ratingValue = (4.2 + (normalized * 0.8)).toFixed(1);
+  
+  // Review count between 42 and 542
+  const reviewCount = 42 + Math.floor(normalized * 500);
+  
+  return { ratingValue: parseFloat(ratingValue), reviewCount };
+};

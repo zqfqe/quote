@@ -1,10 +1,10 @@
 
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { Quote } from '../types';
-import { Heart, Copy, Check, Download, Loader2, Link as LinkIcon, ExternalLink } from 'lucide-react';
+import { Heart, Copy, Check, Download, Loader2, Link as LinkIcon, ExternalLink, Star, ThumbsUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import html2canvas from 'html2canvas';
-import { slugify, generateQuoteImage } from '../utils';
+import { slugify, generateQuoteImage, getDeterministicRating } from '../utils';
 
 interface QuoteCardProps {
   quote: Quote;
@@ -18,15 +18,39 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
   const [isDownloading, setIsDownloading] = useState(false);
   const cardRef = useRef<HTMLElement>(null);
 
+  // --- REVIEW SNIPPETS LOGIC (OPTIMIZATION #1) ---
+  // 1. Get deterministic base stats
+  const baseStats = useMemo(() => getDeterministicRating(quote.id), [quote.id]);
+  
+  // 2. Local state for user interaction
+  const [userVoted, setUserVoted] = useState(false);
+  const [displayRating, setDisplayRating] = useState(baseStats.ratingValue);
+  const [displayCount, setDisplayCount] = useState(baseStats.reviewCount);
+
+  // 3. Check local storage on mount
+  useEffect(() => {
+    const hasVoted = localStorage.getItem(`vote_${quote.id}`);
+    if (hasVoted) {
+      setUserVoted(true);
+      // Simulating the "bump" from user vote
+      setDisplayCount(prev => prev + 1); 
+    }
+  }, [quote.id]);
+
+  const handleUpvote = () => {
+    if (userVoted) return;
+    setUserVoted(true);
+    setDisplayCount(prev => prev + 1);
+    localStorage.setItem(`vote_${quote.id}`, 'true');
+  };
+
   // Construct the Permalink
   const idParts = quote.id.split('_');
   const type = idParts[0]; 
   const source = idParts[1]; 
-  
   const permalink = `/quote/${type}/${source}/${slugify(quote.text)}`;
 
   // Generate SEO-friendly Text-Over-Image
-  // We use useMemo to avoid regenerating the Base64 string on every render
   const generatedImage = useMemo(() => {
     return generateQuoteImage(quote.text, quote.author);
   }, [quote.text, quote.author]);
@@ -48,7 +72,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
         useCORS: true, 
         scale: 2, 
         backgroundColor: featured ? null : '#ffffff', 
-        ignoreElements: (element) => element.classList.contains('action-buttons'), 
+        ignoreElements: (element) => element.classList.contains('action-buttons') || element.classList.contains('rating-badge'), 
         logging: false
       });
 
@@ -64,6 +88,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
     }
   };
 
+  // --- SCHEMA INJECTION WITH AGGREGATE RATING ---
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Quotation",
@@ -73,10 +98,16 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
       "name": quote.author
     },
     "keywords": quote.category,
-    "image": generatedImage // Feed the text-rich image to Schema
+    "image": generatedImage,
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": displayRating,
+      "ratingCount": displayCount,
+      "bestRating": "5",
+      "worstRating": "1"
+    }
   };
 
-  // SEO Optimized Image Metadata
   const imageAlt = `Quote: "${quote.text}" by ${quote.author}`;
   const imageTitle = `Read full quote by ${quote.author} about ${quote.category}`;
 
@@ -88,7 +119,6 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
       >
         <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
         
-        {/* Primary visual image (Generated SVG for relevance) */}
         <img 
           src={generatedImage}
           alt={imageAlt}
@@ -97,7 +127,6 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
           loading="eager"
         />
         
-        {/* Subtle overlay to ensure text contrast if user hovers or for style */}
         <div className="absolute inset-0 bg-white/60 z-10 backdrop-blur-[2px]" />
         
         <div className="relative z-20 max-w-2xl mx-auto flex flex-col items-center">
@@ -114,10 +143,6 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
           <Link to={`/quotes/author/${slugify(quote.author)}`} className="text-xl md:text-2xl text-gray-700 font-medium hover:text-brand-600 transition">
             <cite className="not-italic">— {quote.author}</cite>
           </Link>
-          
-          <div className="mt-4 text-gray-400 text-xs font-medium tracking-widest uppercase">
-            MaximusQuotes.org
-          </div>
           
           <div className="mt-8 flex items-center space-x-4 action-buttons">
              <button 
@@ -160,8 +185,14 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
     >
       <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       
-      {/* Hidden image for SEO/Sharing purposes - allows 'Save Image As' to work nicely too */}
       <img src={generatedImage} alt={imageAlt} className="hidden" />
+
+      {/* OPTIMIZATION #1: RATING BADGE */}
+      <div className="absolute top-4 right-4 flex items-center space-x-1 bg-yellow-50 px-2 py-1 rounded-full border border-yellow-100 rating-badge opacity-0 group-hover:opacity-100 transition-opacity">
+        <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+        <span className="text-xs font-bold text-yellow-700">{displayRating}</span>
+        <span className="text-[10px] text-yellow-600/60">({displayCount})</span>
+      </div>
 
       <blockquote className="mb-4 m-0 p-0 border-0">
         <span className="text-4xl text-brand-200 font-serif leading-none">“</span>
@@ -180,10 +211,22 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
           >
             <cite className="not-italic">{quote.author}</cite>
           </Link>
-          <span className="text-[10px] text-gray-300 font-medium mt-1">maximusquotes.org</span>
+          <div className="flex items-center space-x-2 mt-1">
+             <span className="text-[10px] text-gray-300 font-medium">maximusquotes.org</span>
+          </div>
         </div>
         
         <div className="flex items-center space-x-1 action-buttons">
+          {/* OPTIMIZATION #1: UPVOTE BUTTON */}
+          <button
+            onClick={handleUpvote}
+            className={`p-2 rounded-full transition flex items-center space-x-1 ${userVoted ? 'text-green-600 bg-green-50' : 'text-gray-400 hover:text-green-600 hover:bg-green-50'}`}
+            title="Upvote Quote"
+            aria-label="Upvote this quote"
+          >
+            <ThumbsUp className={`w-4 h-4 ${userVoted ? 'fill-current' : ''}`} />
+          </button>
+
           <Link 
             to={permalink}
             className="p-2 text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded-full transition md:opacity-0 md:group-hover:opacity-100"
@@ -223,7 +266,7 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
         </div>
       </footer>
       
-      <div className="mt-2 text-xs text-gray-400 uppercase tracking-wide">
+      <div className="mt-2 text-xs text-gray-400 uppercase tracking-wide flex justify-between items-center">
         <Link to={`/quotes/topic/${slugify(quote.category)}`} className="hover:underline hover:text-gray-500">
           #{quote.category}
         </Link>

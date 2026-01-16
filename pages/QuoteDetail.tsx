@@ -5,7 +5,7 @@ import { Quote, DataStatus } from '../types';
 import { fetchQuoteDetail } from '../services/geminiService';
 import QuoteCard from '../components/QuoteCard';
 import SEO from '../components/SEO';
-import { Loader2, ArrowRight, Quote as QuoteIcon, User, BookOpen } from 'lucide-react';
+import { Loader2, ArrowRight, Quote as QuoteIcon, User, Lightbulb, BookOpen } from 'lucide-react';
 import { slugify, unslugify } from '../utils';
 
 interface QuoteDetailProps {
@@ -13,29 +13,65 @@ interface QuoteDetailProps {
   toggleFavorite: (q: Quote) => void;
 }
 
-// Helper to generate dynamic descriptions if no bio is present.
-// This prevents every page from having the exact same sentence structure.
-const getDynamicDescription = (quote: Quote, type: string) => {
-  const len = quote.text.length;
-  const isShort = len < 50;
-  const templates = [
-    // Template 1
-    `This memorable line by <strong>${quote.author}</strong> stands as a testament to their perspective on ${quote.category.toLowerCase()}. It touches on themes of ${quote.category.toLowerCase()} that resonate with many.`,
-    // Template 2
-    `In this profound statement, <strong>${quote.author}</strong> captures the essence of ${quote.category.toLowerCase()}. ${isShort ? "Brief yet powerful, these words" : "These words"} have inspired readers to reflect on their own lives.`,
-    // Template 3
-    `<strong>${quote.author}</strong> is known for their wisdom regarding ${quote.category.toLowerCase()}. This specific quote highlights a unique viewpoint that continues to be relevant today.`,
-    // Template 4
-    `Explaining the concept of ${quote.category.toLowerCase()}, <strong>${quote.author}</strong> offers a thought-provoking idea: "${quote.text.substring(0, 20)}...". It serves as a reminder of the power of words.`,
-    // Template 5 (Media specific)
-    type === 'movie' || type === 'book' 
-      ? `A classic moment from <strong>${quote.category}</strong>. This quote by ${quote.author} encapsulates the mood and theme of the work, leaving a lasting impression on the audience.`
-      : `Reflecting on ${quote.category.toLowerCase()}, <strong>${quote.author}</strong> delivers a message that cuts through the noise. It is a call to understanding and awareness.`
-  ];
+// --- OPTIMIZATION #2: ANALYSIS GENERATOR ---
+// Generates a structured "Analysis" section to add unique content depth
+const QuoteAnalysis: React.FC<{ quote: Quote, bio?: string }> = ({ quote, bio }) => {
+    // Extract keywords for dynamic sentence construction
+    const words = quote.text.split(' ').length;
+    const isLong = words > 15;
+    const isShort = words < 8;
+    
+    return (
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Left Col: Context */}
+            <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-purple-50 p-2 rounded-lg">
+                        <Lightbulb className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900">Interpretation & Analysis</h3>
+                </div>
+                <div className="text-gray-600 leading-relaxed space-y-4 text-sm md:text-base">
+                    <p>
+                        <strong>"{quote.text}"</strong> is a powerful statement about <Link to={`/quotes/topic/${slugify(quote.category)}`} className="text-brand-600 hover:underline">{quote.category}</Link>. 
+                        {isShort 
+                            ? " Despite its brevity, this quote packs a significant punch, distilling a complex idea into a memorable aphorism." 
+                            : " The detailed nature of this quote allows for a nuanced exploration of the subject matter, offering deep insight into the author's perspective."}
+                    </p>
+                    <p>
+                        Quotes by <strong>{quote.author}</strong> often reflect themes of {quote.category.toLowerCase()}, and this specific line is a prime example. 
+                        It challenges the reader to reconsider their own views on {quote.category.toLowerCase()} and serves as a timeless reminder of the human condition.
+                    </p>
+                </div>
+            </div>
 
-  // Pick a template based on the length of the text (pseudo-random but consistent per quote)
-  const index = len % templates.length;
-  return templates[index];
+            {/* Right Col: Author Context */}
+            <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-blue-50 p-2 rounded-lg">
+                        <User className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900">About {quote.author}</h3>
+                </div>
+                <div className="text-gray-600 leading-relaxed space-y-4 text-sm md:text-base">
+                    {bio ? (
+                        <p>{bio}</p>
+                    ) : (
+                        <p>
+                            {quote.author} is a renowned figure associated with wisdom regarding {quote.category}. 
+                            Their contributions to literature, philosophy, or culture have solidified their place in history.
+                        </p>
+                    )}
+                    <Link 
+                        to={`/quotes/author/${slugify(quote.author)}`} 
+                        className="inline-flex items-center text-brand-600 font-bold hover:text-brand-800 mt-2 group"
+                    >
+                        View all quotes by {quote.author} <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 const QuoteDetail: React.FC<QuoteDetailProps> = ({ favorites, toggleFavorite }) => {
@@ -55,7 +91,7 @@ const QuoteDetail: React.FC<QuoteDetailProps> = ({ favorites, toggleFavorite }) 
       if (data.quote) {
         setQuote(data.quote);
         setRelatedQuotes(data.related);
-        setBio(data.bio); // Set the fetched bio
+        setBio(data.bio); 
         setStatus(DataStatus.SUCCESS);
       } else {
         setStatus(DataStatus.ERROR);
@@ -85,42 +121,19 @@ const QuoteDetail: React.FC<QuoteDetailProps> = ({ favorites, toggleFavorite }) 
   }
 
   // --- SEO SCHEMAS ---
-  
   const prettySource = unslugify(source || '');
   const typeLabel = type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Collection';
 
-  // 1. Breadcrumb Schema (Crucial for search path display)
   const breadcrumbSchema = {
     "@type": "BreadcrumbList",
     "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": "https://maximusquotes.org"
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": typeLabel + "s", // e.g. Authors, Topics
-        "item": `https://maximusquotes.org/directory#${type}`
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": prettySource,
-        "item": `https://maximusquotes.org/quotes/${type}/${source}`
-      },
-      {
-        "@type": "ListItem",
-        "position": 4,
-        "name": "Quote",
-        "item": window.location.href
-      }
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://maximusquotes.org" },
+      { "@type": "ListItem", "position": 2, "name": typeLabel + "s", "item": `https://maximusquotes.org/directory#${type}` },
+      { "@type": "ListItem", "position": 3, "name": prettySource, "item": `https://maximusquotes.org/quotes/${type}/${source}` },
+      { "@type": "ListItem", "position": 4, "name": "Quote", "item": window.location.href }
     ]
   };
 
-  // 2. Quotation Schema (Main Entity)
   const quotationSchema = {
     "@type": "Quotation",
     "text": quote.text,
@@ -128,24 +141,16 @@ const QuoteDetail: React.FC<QuoteDetailProps> = ({ favorites, toggleFavorite }) 
       "@type": "Person",
       "name": quote.author,
       "description": bio ? bio.substring(0, 150) + "..." : undefined,
-      // Attempt to link to the Author page for internal authority
       "url": `https://maximusquotes.org/quotes/author/${slugify(quote.author)}`
     },
     "keywords": quote.category,
     "url": window.location.href,
-    "mainEntityOfPage": {
-        "@type": "WebPage",
-        "@id": window.location.href
-    }
+    "mainEntityOfPage": { "@type": "WebPage", "@id": window.location.href }
   };
 
-  // Combine into @graph for robust linking
   const schema = {
     "@context": "https://schema.org",
-    "@graph": [
-      quotationSchema,
-      breadcrumbSchema
-    ]
+    "@graph": [quotationSchema, breadcrumbSchema]
   };
 
   return (
@@ -156,7 +161,6 @@ const QuoteDetail: React.FC<QuoteDetailProps> = ({ favorites, toggleFavorite }) 
         schema={schema}
       />
 
-      {/* Breadcrumbs */}
       <nav className="flex items-center text-sm text-gray-500 mb-8 space-x-2">
         <Link to="/" className="hover:text-brand-600">Home</Link>
         <span>/</span>
@@ -164,10 +168,9 @@ const QuoteDetail: React.FC<QuoteDetailProps> = ({ favorites, toggleFavorite }) 
           {source?.replace(/-/g, ' ')}
         </Link>
         <span>/</span>
-        <span className="truncate max-w-[200px]">Quote</span>
+        <span className="truncate max-w-[200px] font-medium text-gray-900">Quote</span>
       </nav>
 
-      {/* Hero Quote Display */}
       <div className="max-w-4xl mx-auto mb-20">
         <QuoteCard 
           quote={quote} 
@@ -176,41 +179,10 @@ const QuoteDetail: React.FC<QuoteDetailProps> = ({ favorites, toggleFavorite }) 
           featured={true}
         />
         
-        {/* Context / Analysis Section */}
-        <div className="mt-12 bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
-            <div className="flex items-start gap-4">
-                <div className="bg-brand-50 p-3 rounded-full shrink-0">
-                    {bio ? <User className="w-6 h-6 text-brand-600" /> : <QuoteIcon className="w-6 h-6 text-brand-600" />}
-                </div>
-                <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">
-                        {bio ? `About ${quote.author}` : "About this Quote"}
-                    </h3>
-                    
-                    {bio ? (
-                        // Render Rich Bio if available
-                        <div className="text-gray-600 leading-relaxed space-y-4">
-                            <p>{bio}</p>
-                            <Link 
-                                to={`/quotes/author/${slugify(quote.author)}`} 
-                                className="inline-flex items-center text-brand-600 font-medium hover:underline text-sm"
-                            >
-                                More quotes by {quote.author} <ArrowRight className="w-3 h-3 ml-1" />
-                            </Link>
-                        </div>
-                    ) : (
-                        // Render Dynamic Description if no bio (Thin content fix)
-                        <p 
-                            className="text-gray-600 leading-relaxed"
-                            dangerouslySetInnerHTML={{ __html: getDynamicDescription(quote, type || '') }}
-                        />
-                    )}
-                </div>
-            </div>
-        </div>
+        {/* OPTIMIZATION #2: Content Differentiation Analysis Module */}
+        <QuoteAnalysis quote={quote} bio={bio} />
       </div>
 
-      {/* Related Quotes Section */}
       {relatedQuotes.length > 0 && (
         <div className="border-t border-gray-100 pt-16">
           <div className="flex items-center justify-between mb-8">
