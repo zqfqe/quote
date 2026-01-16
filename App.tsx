@@ -4,6 +4,8 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import SearchResults from './pages/SearchResults';
+import QuoteDetail from './pages/QuoteDetail';
+import DirectoryPage from './pages/DirectoryPage'; // Import DirectoryPage
 import Favorites from './pages/Favorites';
 import { About, Contact, Privacy, Terms } from './pages/Legal';
 import NotFound from './pages/NotFound';
@@ -51,11 +53,30 @@ function App() {
             path="/" 
             element={<Home favorites={savedIds} toggleFavorite={toggleFavorite} />} 
           />
-          {/* New SEO Friendly Route Structure */}
+          {/* New SEO Friendly Route Structure for Categories */}
           <Route 
             path="/quotes/:type/:query" 
             element={<SearchResults favorites={savedIds} toggleFavorite={toggleFavorite} />} 
           />
+          
+          {/* Listicle / Filtered Route (e.g., /quotes/topic/life/best) */}
+          <Route 
+            path="/quotes/:type/:query/:mode" 
+            element={<SearchResults favorites={savedIds} toggleFavorite={toggleFavorite} />} 
+          />
+          
+          {/* NEW: Single Quote Landing Page */}
+          <Route 
+            path="/quote/:type/:source/:quoteSlug" 
+            element={<QuoteDetail favorites={savedIds} toggleFavorite={toggleFavorite} />} 
+          />
+
+          {/* HTML Sitemap / Directory */}
+          <Route 
+            path="/directory" 
+            element={<DirectoryPage />} 
+          />
+
           {/* Legacy route fallback */}
           <Route 
             path="/explore" 

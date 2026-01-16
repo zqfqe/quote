@@ -1,13 +1,10 @@
+
 /**
- * STATIC PRERENDER SCRIPT (Head-Only SSG)
- * 
- * This script runs after `vite build`.
- * It reads the compiled `dist/index.html`.
- * It scans the `data/` folder for all topics, authors, etc.
- * It generates a physical directory structure (e.g. `dist/quotes/author/Einstein/index.html`)
- * It injects specific Title and Meta Description into each file.
- * 
- * Benefit: Social Media bots and Crawlers see correct metadata immediately.
+ * ADVANCED STATIC PRERENDER SCRIPT
+ * Generates static HTML for:
+ * 1. Static Pages (About, Contact)
+ * 2. Category Pages (Authors, Topics, etc.)
+ * 3. Individual Quote Pages (Deep Links)
  */
 
 import fs from 'fs';
@@ -20,34 +17,8 @@ const __dirname = path.dirname(__filename);
 const DIST_DIR = path.resolve(__dirname, '../dist');
 const TEMPLATE_FILE = path.join(DIST_DIR, 'index.html');
 
-// Helper: Read the built index.html
-let template = '';
-try {
-  template = fs.readFileSync(TEMPLATE_FILE, 'utf8');
-} catch (e) {
-  console.error("Error: dist/index.html not found. Run 'npm run build' first.");
-  process.exit(1);
-}
+// --- 1. CONFIGURATION ---
 
-// Helper to extract keys from TS data files (RegEx parsing to avoid TS compilation)
-function extractKeys(filePath) {
-  try {
-    const fullPath = path.resolve(__dirname, filePath);
-    const content = fs.readFileSync(fullPath, 'utf8');
-    const regex = /"([^"]+)":\s*\[/g;
-    let match;
-    const keys = [];
-    while ((match = regex.exec(content)) !== null) {
-      keys.push(match[1]);
-    }
-    return keys;
-  } catch (err) {
-    console.error(`Error reading ${filePath}:`, err);
-    return [];
-  }
-}
-
-// Configuration of routes to generate
 const dataSources = [
   { type: 'topic', file: '../data/quotesTopics.ts', label: 'Topic' },
   { type: 'author', file: '../data/quotesAuthors.ts', label: 'Author' },
@@ -62,17 +33,70 @@ const dataSources = [
 ];
 
 const staticRoutes = [
-  { path: 'about', title: 'About Us', desc: 'About Maximus Quotes' },
+  { path: 'about', title: 'About Us', desc: 'About Maximus Quotes - Our Mission & Vision' },
   { path: 'contact', title: 'Contact Us', desc: 'Get in touch with Maximus Quotes' },
   { path: 'privacy', title: 'Privacy Policy', desc: 'Privacy Policy' },
   { path: 'terms', title: 'Terms & Conditions', desc: 'Terms of Service' },
   { path: 'favorites', title: 'Your Favorites', desc: 'Your saved quotes collection' },
 ];
 
-// Function to generate a file
-function writeFile(urlPath, title, description) {
-  // 1. Create Directory
-  // Remove leading slash for filesystem path
+// --- 2. HELPERS ---
+
+const slugify = (text) => {
+  if (!text) return '';
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-');
+};
+
+let template = '';
+try {
+  template = fs.readFileSync(TEMPLATE_FILE, 'utf8');
+} catch (e) {
+  console.error("Error: dist/index.html not found.");
+  process.exit(1);
+}
+
+function parseDataFile(filePath) {
+  const dataMap = new Map();
+  try {
+    const fullPath = path.resolve(__dirname, filePath);
+    const content = fs.readFileSync(fullPath, 'utf8');
+    const keyRegex = /"([^"]+)":\s*(\[|\{)([\s\S]*?)(\]|\})(?=\s*,?\s*"|\s*};)/g;
+    
+    let match;
+    while ((match = keyRegex.exec(content)) !== null) {
+      const key = match[1];
+      const body = match[3];
+      const quotes = [];
+
+      const qRegex = /q\(\s*"((?:[^"\\]|\\.)*)"\s*,\s*"((?:[^"\\]|\\.)*)"\s*\)/g;
+      const objRegex = /text:\s*"((?:[^"\\]|\\.)*)"\s*,\s*author:\s*"((?:[^"\\]|\\.)*)"/g;
+      
+      let qMatch;
+      while ((qMatch = qRegex.exec(body)) !== null) {
+        quotes.push({ text: qMatch[1].replace(/\\"/g, '"'), author: qMatch[2].replace(/\\"/g, '"') });
+      }
+      let objMatch;
+      while ((objMatch = objRegex.exec(body)) !== null) {
+        quotes.push({ text: objMatch[1].replace(/\\"/g, '"'), author: objMatch[2].replace(/\\"/g, '"') });
+      }
+      
+      if (quotes.length > 0) {
+        dataMap.set(key, quotes);
+      }
+    }
+  } catch (err) {
+    console.error(`Error parsing ${filePath}:`, err.message);
+  }
+  return dataMap;
+}
+
+function writeFile(urlPath, title, description, injectedContentHtml = '') {
   const relativePath = urlPath.startsWith('/') ? urlPath.slice(1) : urlPath; 
   const dir = path.join(DIST_DIR, relativePath);
   
@@ -80,62 +104,73 @@ function writeFile(urlPath, title, description) {
     fs.mkdirSync(dir, { recursive: true });
   }
 
-  // 2. Inject Metadata into Template
   let html = template;
-  
-  // Replace Title
   html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
   html = html.replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${title}" />`);
   html = html.replace(/<meta name="twitter:title" content=".*?" \/>/, `<meta name="twitter:title" content="${title}" />`);
   
-  // Replace Description
   const safeDesc = description.replace(/"/g, '&quot;');
   html = html.replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${safeDesc}" />`);
   html = html.replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="${safeDesc}" />`);
   html = html.replace(/<meta name="twitter:description" content=".*?" \/>/, `<meta name="twitter:description" content="${safeDesc}" />`);
   
-  // Replace URL
   const fullUrl = `${BASE_URL}/${relativePath}`;
   html = html.replace(/<meta property="og:url" content=".*?" \/>/, `<meta property="og:url" content="${fullUrl}" />`);
 
-  // 3. Write File
+  if (injectedContentHtml) {
+    html = html.replace('<!-- SEO_CONTENT -->', injectedContentHtml);
+  }
+
   fs.writeFileSync(path.join(dir, 'index.html'), html);
 }
 
-console.log('🚀 Starting Prerender Process...');
+// --- 3. EXECUTION ---
 
-// 1. Generate Static Routes
+console.log('🚀 Starting Deep Prerender...');
+
+// Static
 staticRoutes.forEach(route => {
   writeFile(route.path, `${route.title} - Maximus Quotes`, route.desc);
 });
 
-// 2. Generate Dynamic Routes
-let count = 0;
+// Dynamic Categories & Individual Quotes
+let pageCount = 0;
 dataSources.forEach(({ type, file, label }) => {
-  const items = extractKeys(file);
-  items.forEach(item => {
-    const encodedItem = encodeURIComponent(item);
-    const urlPath = `quotes/${type}/${encodedItem}`;
-    
-    // Generate intelligent Title/Desc
-    const title = `${item} Quotes - Best ${label} Quotes & Sayings`;
-    let desc = '';
-    
-    switch(type) {
-        case 'author': desc = `Discover the most inspiring quotes by ${item}. A curated collection of wisdom, thoughts, and sayings.`; break;
-        case 'movie': desc = `Relive the best moments from ${item}. Top quotes, lines, and dialogue from the movie.`; break;
-        case 'book': desc = `Famous quotes and memorable lines from the book ${item}.`; break;
-        case 'lyrics': desc = `Best song lyrics and lines from ${item}.`; break;
-        default: desc = `Browse our extensive collection of the best quotes about ${item}. Inspiration for your daily life.`;
-    }
+  const dataMap = parseDataFile(file);
+  console.log(`Processing ${label}: found ${dataMap.size} categories.`);
 
-    writeFile(urlPath, title, desc);
-    count++;
+  dataMap.forEach((quotes, item) => {
+    const itemSlug = slugify(item);
+    
+    // 1. Category Page
+    const catUrl = `quotes/${type}/${itemSlug}`;
+    const catTitle = `${item} Quotes - Best ${label} Quotes`;
+    const catDesc = `Browse our collection of the best quotes by ${item}.`;
+    const catHtml = `<h1>${catTitle}</h1><ul>${quotes.slice(0,10).map(q => `<li>${q.text}</li>`).join('')}</ul>`;
+    writeFile(catUrl, catTitle, catDesc, catHtml);
+    pageCount++;
+
+    // 2. Individual Quote Pages
+    quotes.forEach(quote => {
+        const quoteSlug = slugify(quote.text);
+        if (quoteSlug.length > 0) {
+            const quoteUrl = `quote/${type}/${itemSlug}/${quoteSlug}`;
+            const quoteTitle = `"${quote.text.substring(0, 50)}..." - ${quote.author}`;
+            const quoteDesc = `Famous quote by ${quote.author}: ${quote.text}`;
+            const quoteHtml = `
+                <article>
+                    <h1>${quote.text}</h1>
+                    <p>Author: ${quote.author}</p>
+                    <p>Category: ${item}</p>
+                </article>
+            `;
+            writeFile(quoteUrl, quoteTitle, quoteDesc, quoteHtml);
+            pageCount++;
+        }
+    });
   });
 });
 
-console.log(`✅ Successfully prerendered ${count + staticRoutes.length} pages.`);
-
-// 3. Create 404.html (Copy of index.html for SPA fallback)
+console.log(`✅ Generated ${pageCount} pages.`);
+// Copy 404
 fs.copyFileSync(TEMPLATE_FILE, path.join(DIST_DIR, '404.html'));
-console.log('✅ Created 404.html fallback.');

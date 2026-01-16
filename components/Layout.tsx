@@ -39,7 +39,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center space-x-8">
               <Link to="/" className="text-gray-600 hover:text-brand-600 font-medium transition">Home</Link>
-              <Link to="/quotes/topic/Life" className="text-gray-600 hover:text-brand-600 font-medium transition">Explore</Link>
+              <Link to="/directory" className="text-gray-600 hover:text-brand-600 font-medium transition">Directory</Link>
               <Link to="/favorites" className="text-gray-600 hover:text-brand-600 font-medium transition">Favorites</Link>
             </div>
 
@@ -73,7 +73,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             
             <div className="flex flex-col space-y-3 pt-2">
               <Link to="/" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-gray-800 py-2 border-b border-gray-50">Home</Link>
-              <Link to="/quotes/topic/Life" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-gray-800 py-2 border-b border-gray-50">Explore</Link>
+              <Link to="/directory" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-gray-800 py-2 border-b border-gray-50">Directory</Link>
               <Link to="/favorites" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-gray-800 py-2">Favorites</Link>
             </div>
           </div>
@@ -109,6 +109,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div>
             <h4 className="text-white font-semibold mb-4">Explore</h4>
             <ul className="space-y-2 text-sm">
+              <li><Link to="/directory" className="hover:text-brand-400">Full Directory</Link></li>
               <li><Link to="/quotes/topic/Love" className="hover:text-brand-400">Popular Topics</Link></li>
               <li><Link to="/quotes/author/Einstein" className="hover:text-brand-400">Famous Authors</Link></li>
               <li><Link to="/" className="hover:text-brand-400">Quote of the Day</Link></li>

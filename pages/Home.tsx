@@ -13,6 +13,7 @@ import {
   POPULAR_GAMES, POPULAR_BOOKS, POPULAR_PROVERBS, 
   POPULAR_LYRICS, POPULAR_ANIME, POPULAR_POEMS 
 } from '../constants';
+import { slugify } from '../utils';
 
 interface HomeProps {
   favorites: string[];
@@ -86,15 +87,17 @@ const Home: React.FC<HomeProps> = ({ favorites, toggleFavorite }) => {
   };
 
   // Featured Collections
+  // NOTE: For multi-term queries, we still use the query string format, but ensure it's properly encoded.
+  // For single items like "The Godfather", we use slugify.
   const collections = [
-    { title: "Days of the Week", query: "Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Weekend", count: "Daily", color: "bg-blue-50 text-blue-700", type: "topic" },
-    { title: "Four Seasons", query: "Spring|Summer|Autumn|Winter|Season", count: "Seasonal", color: "bg-green-50 text-green-700", type: "topic" },
-    { title: "Daily Motivation", query: "Motivation|Inspiration|Dreams|Courage|Action", count: "1000+", color: "bg-orange-100 text-orange-700", type: "topic" },
-    { title: "Stoic Wisdom", query: "Philosophy|Wisdom|Patience|Strength|Truth", count: "500+", color: "bg-slate-100 text-slate-700", type: "topic" },
-    { title: "Movie Magic", query: "Godfather|Star Wars|Pulp Fiction|Dark Knight|Fight Club", count: "2000+", color: "bg-rose-100 text-rose-700", type: "movie" },
-    { title: "Love & Romance", query: "Love|Romantic|Marriage|Affection|Valentine", count: "800+", color: "bg-pink-100 text-pink-700", type: "topic" },
-    { title: "Success Mindset", query: "Success|Business|Money|Leadership|Work", count: "700+", color: "bg-green-100 text-green-700", type: "topic" },
-    { title: "Laugh Out Loud", query: "Humor|Funny|Smile|Laughter|Amusement", count: "400+", color: "bg-yellow-100 text-yellow-700", type: "topic" },
+    { title: "Days of the Week", query: "Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Weekend", count: "Daily", color: "bg-blue-50 text-blue-700", type: "topic", slug: null },
+    { title: "Four Seasons", query: "Spring|Summer|Autumn|Winter|Season", count: "Seasonal", color: "bg-green-50 text-green-700", type: "topic", slug: null },
+    { title: "Daily Motivation", query: "Motivation|Inspiration|Dreams|Courage|Action", count: "1000+", color: "bg-orange-100 text-orange-700", type: "topic", slug: null },
+    { title: "Stoic Wisdom", query: "Philosophy|Wisdom|Patience|Strength|Truth", count: "500+", color: "bg-slate-100 text-slate-700", type: "topic", slug: null },
+    { title: "Movie Magic", query: "Godfather|Star Wars|Pulp Fiction|Dark Knight|Fight Club", count: "2000+", color: "bg-rose-100 text-rose-700", type: "movie", slug: null },
+    { title: "Love & Romance", query: "Love", count: "800+", color: "bg-pink-100 text-pink-700", type: "topic", slug: "love" },
+    { title: "Success Mindset", query: "Success", count: "700+", color: "bg-green-100 text-green-700", type: "topic", slug: "success" },
+    { title: "Laugh Out Loud", query: "Humor", count: "400+", color: "bg-yellow-100 text-yellow-700", type: "topic", slug: "humor" },
   ];
 
   return (
@@ -125,9 +128,9 @@ const Home: React.FC<HomeProps> = ({ favorites, toggleFavorite }) => {
 
           <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm font-medium text-gray-500">
             <span>Popular:</span>
-            <Link to="/quotes/topic/Life" className="hover:text-brand-600 underline decoration-dotted">Life</Link>
-            <Link to="/quotes/topic/Love" className="hover:text-brand-600 underline decoration-dotted">Love</Link>
-            <Link to="/quotes/topic/Success" className="hover:text-brand-600 underline decoration-dotted">Success</Link>
+            <Link to="/quotes/topic/life" className="hover:text-brand-600 underline decoration-dotted">Life</Link>
+            <Link to="/quotes/topic/love" className="hover:text-brand-600 underline decoration-dotted">Love</Link>
+            <Link to="/quotes/topic/success" className="hover:text-brand-600 underline decoration-dotted">Success</Link>
           </div>
         </div>
       </section>
@@ -142,7 +145,7 @@ const Home: React.FC<HomeProps> = ({ favorites, toggleFavorite }) => {
           {collections.map((col, idx) => (
             <Link 
               key={idx} 
-              to={`/quotes/${col.type}/${encodeURIComponent(col.query)}`}
+              to={`/quotes/${col.type}/${col.slug ? col.slug : encodeURIComponent(col.query)}`}
               className={`p-4 rounded-xl transition-transform hover:scale-105 ${col.color} border border-black/5`}
             >
               <h3 className="font-bold text-sm md:text-base mb-1">{col.title}</h3>

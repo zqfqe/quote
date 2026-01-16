@@ -1,9 +1,10 @@
 
 import React, { useState, useRef } from 'react';
 import { Quote } from '../types';
-import { Heart, Copy, Check, Download, Loader2 } from 'lucide-react';
+import { Heart, Copy, Check, Download, Loader2, Link as LinkIcon, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import html2canvas from 'html2canvas';
+import { slugify } from '../utils';
 
 interface QuoteCardProps {
   quote: Quote;
@@ -17,6 +18,26 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
   const [isDownloading, setIsDownloading] = useState(false);
   const cardRef = useRef<HTMLElement>(null);
 
+  // Construct the Permalink
+  // Extract the ID format: type_slug_index
+  // We need to reverse engineer the type for the URL if it's not explicit, 
+  // but usually we can infer 'author' or 'topic' from the context or pass it down.
+  // However, simpler is to use a reliable URL structure.
+  // Let's assume the quote.id has the type prefix (e.g. "author_steve-jobs_0")
+  const idParts = quote.id.split('_');
+  const type = idParts[0]; // 'author', 'movie', 'topic' etc
+  // The 'source' part might be multi-segment if the name had hyphens, so we rejoin everything between first and last part
+  const sourceSlug = idParts.slice(1, -1).join('_'); // We used _ in ID generation, but standard slug uses -. 
+  // Actually, processQuotes uses: `${categoryType}_${slugify(key)}_${index}`
+  // So `idParts[1]` is the slugified key.
+  const source = idParts[1]; 
+  
+  // Note: The ID generation in geminiService uses underscores as separators, but the slug inside is hyphenated.
+  // Example ID: "movie_the-godfather_0"
+  // Parts: ["movie", "the-godfather", "0"]
+  // So type=movie, source=the-godfather.
+  const permalink = `/quote/${type}/${source}/${slugify(quote.text)}`;
+
   const handleCopy = () => {
     navigator.clipboard.writeText(`"${quote.text}" — ${quote.author}`);
     setCopied(true);
@@ -28,19 +49,18 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
     setIsDownloading(true);
 
     try {
-      // Small delay to ensure any rendering is settled
       await new Promise(resolve => setTimeout(resolve, 100));
 
       const canvas = await html2canvas(cardRef.current, {
-        useCORS: true, // Needed for external images (picsum, etc)
-        scale: 2, // Higher resolution for Retina/Mobile
-        backgroundColor: featured ? null : '#ffffff', // Transparent for BG image cards, White for standard
-        ignoreElements: (element) => element.classList.contains('action-buttons'), // Hide the buttons in the image
+        useCORS: true, 
+        scale: 2, 
+        backgroundColor: featured ? null : '#ffffff', 
+        ignoreElements: (element) => element.classList.contains('action-buttons'), 
         logging: false
       });
 
       const link = document.createElement('a');
-      link.download = `maximus-quote-${quote.author.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}.png`;
+      link.download = `maximus-quote-${slugify(quote.author)}-${Date.now()}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
     } catch (error) {
@@ -51,7 +71,6 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
     }
   };
 
-  // Structured Data for Google (Quotation Schema)
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Quotation",
@@ -71,8 +90,6 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
       >
         <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
         
-        {/* Background Image (SEO Optimized) */}
-        {/* Using a real img tag allows Google Images to index the content */}
         <img 
           src={quote.imageUrl || 'https://picsum.photos/800/600'} 
           alt={`Inspirational Quote by ${quote.author}: ${quote.text}`}
@@ -82,26 +99,25 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
         
         <div className="absolute inset-0 bg-black/50 z-10" />
         
-        {/* Content */}
         <div className="relative z-20 max-w-2xl mx-auto flex flex-col items-center">
           <span className="inline-block px-3 py-1 mb-6 text-xs font-semibold tracking-wider text-white uppercase bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
             Quote of the Day
           </span>
           <blockquote className="m-0 p-0 border-0">
-            <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-6 leading-tight drop-shadow-lg">
-              "{quote.text}"
-            </h2>
+            <Link to={permalink} className="hover:text-brand-100 transition-colors">
+              <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-6 leading-tight drop-shadow-lg">
+                "{quote.text}"
+              </h2>
+            </Link>
           </blockquote>
-          <Link to={`/quotes/author/${encodeURIComponent(quote.author)}`} className="text-xl md:text-2xl text-brand-100 font-medium hover:text-white transition drop-shadow-md">
+          <Link to={`/quotes/author/${slugify(quote.author)}`} className="text-xl md:text-2xl text-brand-100 font-medium hover:text-white transition drop-shadow-md">
             <cite className="not-italic">— {quote.author}</cite>
           </Link>
           
-          {/* Watermark for Image (Visible mostly in download, keeps branding) */}
           <div className="mt-4 text-white/40 text-xs font-medium tracking-widest uppercase">
             MaximusQuotes.org
           </div>
           
-          {/* Buttons (Hidden during HTML2Canvas capture via 'action-buttons' class) */}
           <div className="mt-8 flex items-center space-x-4 action-buttons">
              <button 
               onClick={() => onToggleFavorite(quote)}
@@ -136,27 +152,26 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
     );
   }
 
-  // Standard Masonry Card
   return (
     <article 
       ref={cardRef}
-      className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 break-inside-avoid mb-6 flex flex-col h-auto relative"
+      className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 break-inside-avoid mb-6 flex flex-col h-auto relative group"
     >
       <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       
-      {/* Decorative Quote Mark */}
       <blockquote className="mb-4 m-0 p-0 border-0">
         <span className="text-4xl text-brand-200 font-serif leading-none">“</span>
-        <p className="text-lg text-gray-800 font-serif leading-relaxed -mt-4 px-2">
-          {quote.text}
-        </p>
+        <Link to={permalink} className="hover:text-brand-800 transition-colors block">
+          <p className="text-lg text-gray-800 font-serif leading-relaxed -mt-4 px-2">
+            {quote.text}
+          </p>
+        </Link>
       </blockquote>
       
-      {/* Footer Area */}
       <footer className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
         <div className="flex flex-col">
           <Link 
-            to={`/quotes/author/${encodeURIComponent(quote.author)}`}
+            to={`/quotes/author/${slugify(quote.author)}`}
             className="text-sm font-semibold text-gray-600 hover:text-brand-600 transition"
           >
             <cite className="not-italic">{quote.author}</cite>
@@ -164,8 +179,16 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
           <span className="text-[10px] text-gray-300 font-medium mt-1">maximusquotes.org</span>
         </div>
         
-        {/* Action Buttons (Hidden in Download) */}
         <div className="flex items-center space-x-1 action-buttons">
+          <Link 
+            to={permalink}
+            className="p-2 text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded-full transition md:opacity-0 md:group-hover:opacity-100"
+            title="Permalink"
+            aria-label="View quote page"
+          >
+             <ExternalLink className="w-4 h-4" />
+          </Link>
+
           <button 
             onClick={handleDownloadImage}
             disabled={isDownloading}
@@ -196,9 +219,8 @@ const QuoteCard: React.FC<QuoteCardProps> = ({ quote, isFavorite, onToggleFavori
         </div>
       </footer>
       
-      {/* Category Tag */}
       <div className="mt-2 text-xs text-gray-400 uppercase tracking-wide">
-        <Link to={`/quotes/topic/${encodeURIComponent(quote.category)}`} className="hover:underline hover:text-gray-500">
+        <Link to={`/quotes/topic/${slugify(quote.category)}`} className="hover:underline hover:text-gray-500">
           #{quote.category}
         </Link>
       </div>

@@ -11,6 +11,7 @@ export interface Author {
   name: string;
   bio?: string;
   imageUrl?: string;
+  slug?: string;
 }
 
 export interface Topic {

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, X, TrendingUp } from 'lucide-react';
 import Fuse from 'fuse.js';
+import { slugify } from '../utils';
 import {
   POPULAR_TOPICS, POPULAR_AUTHORS, POPULAR_MOVIES,
   POPULAR_TV_SHOWS, POPULAR_BOOKS, POPULAR_GAMES,
@@ -13,6 +14,7 @@ interface SearchItem {
   name: string;
   type: string;
   count?: number;
+  slug?: string;
 }
 
 interface SearchAutocompleteProps {
@@ -37,16 +39,16 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   // 1. Aggregate all data sources into a single index
   const searchIndex = useMemo(() => {
     const allItems: SearchItem[] = [
-      ...POPULAR_TOPICS.map(i => ({ name: i.name, type: 'topic', count: i.count })),
-      ...POPULAR_AUTHORS.map(i => ({ name: i.name, type: 'author' })),
-      ...POPULAR_MOVIES.map(i => ({ name: i.name, type: 'movie' })),
-      ...POPULAR_BOOKS.map(i => ({ name: i.name, type: 'book' })),
-      ...POPULAR_TV_SHOWS.map(i => ({ name: i.name, type: 'tv' })),
-      ...POPULAR_ANIME.map(i => ({ name: i.name, type: 'anime' })),
-      ...POPULAR_GAMES.map(i => ({ name: i.name, type: 'game' })),
-      ...POPULAR_LYRICS.map(i => ({ name: i.name, type: 'lyrics' })),
-      ...POPULAR_POEMS.map(i => ({ name: i.name, type: 'poetry' })),
-      ...POPULAR_PROVERBS.map(i => ({ name: i.name, type: 'proverb' })),
+      ...POPULAR_TOPICS.map(i => ({ name: i.name, type: 'topic', count: i.count, slug: i.slug })),
+      ...POPULAR_AUTHORS.map(i => ({ name: i.name, type: 'author', slug: i.slug })),
+      ...POPULAR_MOVIES.map(i => ({ name: i.name, type: 'movie', slug: i.slug })),
+      ...POPULAR_BOOKS.map(i => ({ name: i.name, type: 'book', slug: i.slug })),
+      ...POPULAR_TV_SHOWS.map(i => ({ name: i.name, type: 'tv', slug: i.slug })),
+      ...POPULAR_ANIME.map(i => ({ name: i.name, type: 'anime', slug: i.slug })),
+      ...POPULAR_GAMES.map(i => ({ name: i.name, type: 'game', slug: i.slug })),
+      ...POPULAR_LYRICS.map(i => ({ name: i.name, type: 'lyrics', slug: i.slug })),
+      ...POPULAR_POEMS.map(i => ({ name: i.name, type: 'poetry', slug: i.slug })),
+      ...POPULAR_PROVERBS.map(i => ({ name: i.name, type: 'proverb', slug: i.slug })),
     ];
     return new Fuse(allItems, {
       keys: ['name'],
@@ -81,8 +83,8 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
   const handleSelect = (item: SearchItem) => {
     setQuery(item.name);
     setIsOpen(false);
-    // Updated to use clean URL path
-    navigate(`/quotes/${item.type}/${encodeURIComponent(item.name)}`);
+    // Use the slug if present, otherwise calculate it
+    navigate(`/quotes/${item.type}/${item.slug || slugify(item.name)}`);
     if (onSearchComplete) onSearchComplete();
   };
 
@@ -90,8 +92,8 @@ const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
     e.preventDefault();
     if (query.trim()) {
       setIsOpen(false);
-      // Updated to use clean URL path for general search
-      navigate(`/quotes/search/${encodeURIComponent(query)}`);
+      // General search queries can just use the slugified version of the user input
+      navigate(`/quotes/search/${slugify(query)}`);
       if (onSearchComplete) onSearchComplete();
     }
   };

@@ -18,22 +18,54 @@ const TODAY = new Date().toISOString().split('T')[0];
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Helper to extract keys from a TS data file content
-function extractKeys(filePath) {
+// Utility: Slugify
+const slugify = (text) => {
+  if (!text) return '';
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-');
+};
+
+// Helper to parse data files and return both keys AND quotes
+function parseData(filePath) {
+  const data = new Map(); // key -> array of quotes
   try {
     const content = fs.readFileSync(filePath, 'utf8');
-    // Regex to find keys in objects like: "Key Name": [ ... ]
-    const regex = /"([^"]+)":\s*\[/g;
+    
+    // Regex to find "Key Name": [ ... ]
+    // This is a simplified regex, assuming structure matches data files
+    const keyRegex = /"([^"]+)":\s*\[([\s\S]*?)\]/g; 
     let match;
-    const keys = [];
-    while ((match = regex.exec(content)) !== null) {
-      keys.push(match[1]);
+    
+    while ((match = keyRegex.exec(content)) !== null) {
+      const key = match[1];
+      const body = match[2];
+      
+      const quotes = [];
+      // Extract quote text: q("Text", "Author") or { text: "Text", ... }
+      const qRegex = /text:\s*"((?:[^"\\]|\\.)*)"/g; // Matches text: "..."
+      const shorthandRegex = /q\(\s*"((?:[^"\\]|\\.)*)"/g; // Matches q("...")
+
+      let qMatch;
+      while ((qMatch = qRegex.exec(body)) !== null) {
+        quotes.push(qMatch[1].replace(/\\"/g, '"'));
+      }
+      while ((qMatch = shorthandRegex.exec(body)) !== null) {
+        quotes.push(qMatch[1].replace(/\\"/g, '"'));
+      }
+
+      if (quotes.length > 0) {
+        data.set(key, quotes);
+      }
     }
-    return keys;
   } catch (err) {
     console.error(`Error reading ${filePath}:`, err);
-    return [];
   }
+  return data;
 }
 
 const dataFiles = [
@@ -49,7 +81,6 @@ const dataFiles = [
   { type: 'proverb', file: '../data/quotesProverbs.ts' },
 ];
 
-// Clean URLs (No /#/)
 let urls = [
   { loc: '/', priority: '1.0' },
   { loc: '/about', priority: '0.8' },
@@ -58,19 +89,32 @@ let urls = [
   { loc: '/terms', priority: '0.5' },
 ];
 
-console.log('Generating Sitemap...');
+console.log('Generating Sitemap with Deep Links...');
 
 dataFiles.forEach(({ type, file }) => {
   const fullPath = path.resolve(__dirname, file);
-  const keys = extractKeys(fullPath);
-  console.log(`Found ${keys.length} items for ${type}`);
+  const data = parseData(fullPath);
+  console.log(`Processing ${type}: found ${data.size} categories.`);
   
-  keys.forEach(key => {
-    // Generate CLEAN URL format: /quotes/:type/:query
-    const safeKey = encodeURIComponent(key);
+  data.forEach((quotes, key) => {
+    const safeKey = slugify(key);
+    
+    // 1. Category URL
     urls.push({
       loc: `/quotes/${type}/${safeKey}`,
-      priority: '0.7'
+      priority: '0.8'
+    });
+
+    // 2. Individual Quote URLs
+    quotes.forEach(quoteText => {
+      const safeQuote = slugify(quoteText);
+      // Limit URL length to avoid SEO issues, though uniqueness is key
+      if (safeQuote.length > 0) {
+        urls.push({
+          loc: `/quote/${type}/${safeKey}/${safeQuote}`,
+          priority: '0.6'
+        });
+      }
     });
   });
 });
@@ -85,7 +129,6 @@ ${urls.map(url => `  <url>
   </url>`).join('\n')}
 </urlset>`;
 
-// Write to public folder
 const publicDir = path.resolve(__dirname, '../public');
 if (!fs.existsSync(publicDir)) {
     fs.mkdirSync(publicDir);

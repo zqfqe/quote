@@ -2,11 +2,13 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { LucideIcon } from 'lucide-react';
+import { slugify } from '../utils';
 
 interface DirectoryItem {
   id: string;
   name: string;
   count?: number;
+  slug?: string; // Optional because some legacy items might not have it yet
 }
 
 type ThemeColor = 'blue' | 'purple' | 'rose' | 'amber' | 'emerald' | 'indigo' | 'orange' | 'pink' | 'red' | 'teal';
@@ -166,7 +168,6 @@ const Directory: React.FC<DirectoryProps> = ({ title, items, type, icon: Icon, t
 
       <div className="p-4 md:p-8">
         {/* Alphabet Navigation */}
-        {/* Mobile: Horizontal Scroll. Desktop: Wrap. */}
         <div className="flex overflow-x-auto md:flex-wrap gap-2 mb-8 pb-4 md:pb-6 md:justify-center no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 md:border-b md:border-gray-50 snap-x">
           {ALPHABET.map((letter) => {
             const hasItems = groupedItems[letter]?.length > 0;
@@ -199,7 +200,8 @@ const Directory: React.FC<DirectoryProps> = ({ title, items, type, icon: Icon, t
             {displayItems.map((item) => (
               <Link
                 key={item.id}
-                to={`/quotes/${type}/${encodeURIComponent(item.name)}`}
+                // Prefer item.slug if present, else fallback to on-the-fly slugify
+                to={`/quotes/${type}/${item.slug || slugify(item.name)}`}
                 className="flex items-center group p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all"
               >
                 <div className={`w-2 h-2 rounded-full bg-gray-200 ${styles.groupHoverBg} mr-3 shrink-0 transition-colors`}></div>
